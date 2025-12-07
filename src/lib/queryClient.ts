@@ -19,7 +19,7 @@ export async function apiRequest(
 
   // Use absolute URL for production, relative for development
   const isProduction = typeof window !== 'undefined' && window.location.hostname === 'salambumi.xyz';
-  const baseUrl = isProduction ? 'https://salambumi.xyz' : (import.meta.env.VITE_API_BASE_URL || '');
+  const baseUrl = isProduction ? 'https://salambumi.xyz' : (process.env.NEXT_PUBLIC_API_BASE_URL || '');
   const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
   const headers: HeadersInit = data instanceof FormData ? {} : (data ? { "Content-Type": "application/json" } : {});
@@ -102,8 +102,8 @@ export const getQueryFn: <T>(options: {
 
     // Use absolute URL for production, relative for development
     const isProduction = typeof window !== 'undefined' && window.location.hostname === 'salambumi.xyz';
-    const baseUrl = isProduction ? 'https://salambumi.xyz' : (import.meta.env.VITE_API_BASE_URL || '');
-    console.log('🔧 Environment detection:', { hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR', isProduction, baseUrl, VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL });
+    const baseUrl = isProduction ? 'https://salambumi.xyz' : (process.env.NEXT_PUBLIC_API_BASE_URL || '');
+    console.log('🔧 Environment detection:', { hostname: typeof window !== 'undefined' ? window.location.hostname : 'SSR', isProduction, baseUrl, NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL });
     const fullUrl = url.startsWith('http') ? url : `${baseUrl}${url}`;
 
     // Use admin token for admin endpoints, supabase token for others
