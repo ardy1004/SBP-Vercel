@@ -5,7 +5,6 @@ import { useQuery, useMutation } from "@tanstack/react-query";
 import { Plus, Edit, Trash2, CheckSquare, Square, Search, Filter, X, Save, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/lib/supabase";
@@ -282,242 +281,237 @@ export default function AdminPropertiesPage() {
   };
 
   return (
-    <AdminLayout
-      title="Properti"
-      subtitle={`Kelola semua properti Anda ${isBulkMode ? `(${selectedIds.length} dipilih)` : ''}`}
-    >
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div></div>
-          <div className="flex gap-2">
-            <Button
-              variant={isBulkMode ? "secondary" : "outline"}
-              onClick={() => {
-                setIsBulkMode(!isBulkMode);
-                if (isBulkMode) setSelectedIds([]);
-              }}
-            >
-              {isBulkMode ? <Square className="h-4 w-4 mr-2" /> : <CheckSquare className="h-4 w-4 mr-2" />}
-              {isBulkMode ? "Keluar Mode Bulk" : "Mode Bulk"}
-            </Button>
-            <Button
-              onClick={() => {
-                setSelectedProperty(null);
-                setIsFormOpen(true);
-              }}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Properti
-            </Button>
-          </div>
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div></div>
+        <div className="flex gap-2">
+          <Button
+            variant={isBulkMode ? "secondary" : "outline"}
+            onClick={() => {
+              setIsBulkMode(!isBulkMode);
+              if (isBulkMode) setSelectedIds([]);
+            }}
+          >
+            {isBulkMode ? <Square className="h-4 w-4 mr-2" /> : <CheckSquare className="h-4 w-4 mr-2" />}
+            {isBulkMode ? "Keluar Mode Bulk" : "Mode Bulk"}
+          </Button>
+          <Button
+            onClick={() => {
+              setSelectedProperty(null);
+              setIsFormOpen(true);
+            }}
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Tambah Properti
+          </Button>
+        </div>
+      </div>
+
+      {/* Search and Filter Bar */}
+      <div className="flex flex-col sm:flex-row gap-4">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Cari kode listing, judul, provinsi, atau kabupaten..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background"
+          />
         </div>
 
-        {/* Search and Filter Bar */}
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <input
-              type="text"
-              placeholder="Cari kode listing, judul, provinsi, atau kabupaten..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 border border-input rounded-md bg-background"
-            />
-          </div>
+        <div className="flex gap-2">
+          <Select value={filterType} onValueChange={setFilterType}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Tipe Properti" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Tipe</SelectItem>
+              {["rumah", "apartment", "villa", "ruko", "tanah", "kost", "hotel", "gudang", "bangunan_komersial"].map((type) => (
+                <SelectItem key={type} value={type}>
+                  {type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
 
-          <div className="flex gap-2">
-            <Select value={filterType} onValueChange={setFilterType}>
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Tipe Properti" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Tipe</SelectItem>
-                {["rumah", "apartment", "villa", "ruko", "tanah", "kost", "hotel", "gudang", "bangunan_komersial"].map((type) => (
-                  <SelectItem key={type} value={type}>
-                    {type.charAt(0).toUpperCase() + type.slice(1).replace(/_/g, ' ')}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <Select value={filterStatus} onValueChange={setFilterStatus}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Semua Status</SelectItem>
+              <SelectItem value="dijual">Dijual</SelectItem>
+              <SelectItem value="disewakan">Disewakan</SelectItem>
+            </SelectContent>
+          </Select>
 
-            <Select value={filterStatus} onValueChange={setFilterStatus}>
-              <SelectTrigger className="w-32">
-                <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Semua Status</SelectItem>
-                <SelectItem value="dijual">Dijual</SelectItem>
-                <SelectItem value="disewakan">Disewakan</SelectItem>
-              </SelectContent>
-            </Select>
-
-            {(searchTerm || filterType || filterStatus) && (
-              <Button variant="outline" onClick={clearFilters} size="icon">
-                <X className="h-4 w-4" />
-              </Button>
-            )}
-          </div>
+          {(searchTerm || filterType || filterStatus) && (
+            <Button variant="outline" onClick={clearFilters} size="icon">
+              <X className="h-4 w-4" />
+            </Button>
+          )}
         </div>
+      </div>
 
-        {isBulkMode && selectedIds.length > 0 && (
-          <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <CheckSquare className="h-5 w-5 text-blue-600" />
-                  <span className="font-semibold text-blue-900">{selectedIds.length} properti dipilih</span>
-                </div>
-                <div className="flex gap-2">
-                  <Select value={bulkStatusValue} onValueChange={setBulkStatusValue}>
-                    <SelectTrigger className="w-32 h-8">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="dijual">Dijual</SelectItem>
-                      <SelectItem value="disewakan">Disewakan</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <Button
-                    size="sm"
-                    onClick={handleBulkStatusChange}
-                    disabled={!bulkStatusValue || bulkUpdateMutation.isPending}
-                  >
-                    <Save className="h-3 w-3 mr-1" />
-                    Set Status
-                  </Button>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => {
-                      if (confirm(`Hapus ${selectedIds.length} properti?`)) {
-                        selectedIds.forEach(id => deleteMutation.mutate(id));
-                      }
-                    }}
-                  >
-                    <Trash2 className="h-3 w-3 mr-2" />
-                    Hapus {selectedIds.length}
-                  </Button>
-                </div>
+      {isBulkMode && selectedIds.length > 0 && (
+        <Card className="bg-gradient-to-r from-blue-50 to-indigo-50 border-blue-200">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <CheckSquare className="h-5 w-5 text-blue-600" />
+                <span className="font-semibold text-blue-900">{selectedIds.length} properti dipilih</span>
               </div>
-            </CardContent>
-          </Card>
-        )}
+              <div className="flex gap-2">
+                <Select value={bulkStatusValue} onValueChange={setBulkStatusValue}>
+                  <SelectTrigger className="w-32 h-8">
+                    <SelectValue placeholder="Status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="dijual">Dijual</SelectItem>
+                    <SelectItem value="disewakan">Disewakan</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  size="sm"
+                  onClick={handleBulkStatusChange}
+                  disabled={!bulkStatusValue || bulkUpdateMutation.isPending}
+                >
+                  <Save className="h-3 w-3 mr-1" />
+                  Set Status
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  onClick={() => {
+                    if (confirm(`Hapus ${selectedIds.length} properti?`)) {
+                      selectedIds.forEach(id => deleteMutation.mutate(id));
+                    }
+                  }}
+                >
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  Hapus {selectedIds.length}
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
-        {isLoading ? (
-          <div className="text-center py-12">
-            <p>Memuat properti...</p>
-          </div>
-        ) : properties.length === 0 ? (
-          <Card className="bg-muted">
-            <CardContent className="p-12 text-center">
-              <p className="text-muted-foreground">Belum ada properti</p>
-            </CardContent>
-          </Card>
-        ) : (
-          <div className="space-y-4">
-            {filteredProperties.map((property) => (
-              <Card key={property.id} className={`hover-elevate transition-all ${selectedIds.includes(property.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
-                <CardContent className="p-6">
-                  <div className="flex gap-4">
-                    {isBulkMode && (
-                      <div className="flex items-center">
-                        <Checkbox
-                          checked={selectedIds.includes(property.id)}
-                          onCheckedChange={() => toggleSelection(property.id)}
-                        />
-                      </div>
-                    )}
-                    <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
-                      <img
-                        src={getPropertyImage(property)}
-                        alt={property.kodeListing}
-                        className="w-full h-full object-cover"
-                        onError={(e) => {
-                          e.currentTarget.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop';
-                        }}
+      {isLoading ? (
+        <div className="text-center py-12">
+          <p>Memuat properti...</p>
+        </div>
+      ) : properties.length === 0 ? (
+        <Card className="bg-muted">
+          <CardContent className="p-12 text-center">
+            <p className="text-muted-foreground">Belum ada properti</p>
+          </CardContent>
+        </Card>
+      ) : (
+        <div className="space-y-4">
+          {filteredProperties.map((property) => (
+            <Card key={property.id} className={`hover-elevate transition-all ${selectedIds.includes(property.id) ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
+              <CardContent className="p-6">
+                <div className="flex gap-4">
+                  {isBulkMode && (
+                    <div className="flex items-center">
+                      <Checkbox
+                        checked={selectedIds.includes(property.id)}
+                        onCheckedChange={() => toggleSelection(property.id)}
                       />
                     </div>
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <div>
-                          <h3 className="font-semibold text-lg">
-                            {property.judulProperti || property.kodeListing}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">
-                            {property.kabupaten || 'N/A'}
-                          </p>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            ID: {property.kodeListing}
-                          </p>
-                          <div className="mt-1">
-                            <p className="text-sm font-medium text-primary">
-                              {formatPrice(property.hargaProperti, (property as any).hargaPerMeter)}
-                            </p>
-                          </div>
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Legalitas: {property.legalitas || 'N/A'}
-                          </p>
-                        </div>
-                        <div className="flex gap-2">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => {
-                              setSelectedProperty(property);
-                              setIsFormOpen(true);
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </Button>
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            onClick={() => handleDelete(property.id)}
-                          >
-                            <Trash2 className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-2 mb-3">
-                        {property.isPremium && <Badge variant="secondary">Premium</Badge>}
-                        {property.isFeatured && <Badge className="bg-amber-500 text-white">Featured</Badge>}
-                        {property.isHot && <Badge variant="destructive">Hot</Badge>}
-                        {property.isSold && <Badge variant="destructive">SOLD</Badge>}
-                        {property.isPropertyPilihan && <Badge variant="outline">Pilihan</Badge>}
-                        <Badge variant="secondary">{property.status}</Badge>
-                      </div>
-
-                      {property.ownerContact && (
-                        <p className="text-sm text-muted-foreground">
-                          Kontak: {property.ownerContact}
-                        </p>
-                      )}
-                    </div>
+                  )}
+                  <div className="w-24 h-24 bg-gray-100 rounded-md flex items-center justify-center overflow-hidden">
+                    <img
+                      src={getPropertyImage(property)}
+                      alt={property.kodeListing}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.currentTarget.src = 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=400&h=300&fit=crop';
+                      }}
+                    />
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        )}
+                  <div className="flex-1">
+                    <div className="flex items-start justify-between mb-2">
+                      <div>
+                        <h3 className="font-semibold text-lg">
+                          {property.judulProperti || property.kodeListing}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {property.kabupaten || 'N/A'}
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          ID: {property.kodeListing}
+                        </p>
+                        <div className="mt-1">
+                          <p className="text-sm font-medium text-primary">
+                            {formatPrice(property.hargaProperti, (property as any).hargaPerMeter)}
+                          </p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Legalitas: {property.legalitas || 'N/A'}
+                        </p>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => {
+                            setSelectedProperty(property);
+                            setIsFormOpen(true);
+                          }}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDelete(property.id)}
+                        >
+                          <Trash2 className="h-4 w-4 text-destructive" />
+                        </Button>
+                      </div>
+                    </div>
 
-        <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
-          <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-            <DialogHeader>
-              <DialogTitle>
-                {selectedProperty ? "Edit Properti" : "Tambah Properti Baru"}
-              </DialogTitle>
-            </DialogHeader>
-            <PropertyForm
-              property={selectedProperty}
-              onSuccess={() => {
-                setIsFormOpen(false);
-                queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
-              }}
-            />
-          </DialogContent>
-        </Dialog>
-      </div>
-    </AdminLayout>
+                    <div className="flex flex-wrap gap-2 mb-3">
+                      {property.isPremium && <Badge variant="secondary">Premium</Badge>}
+                      {property.isFeatured && <Badge className="bg-amber-500 text-white">Featured</Badge>}
+                      {property.isHot && <Badge variant="destructive">Hot</Badge>}
+                      {property.isSold && <Badge variant="destructive">SOLD</Badge>}
+                      {property.isPropertyPilihan && <Badge variant="outline">Pilihan</Badge>}
+                      <Badge variant="secondary">{property.status}</Badge>
+                    </div>
+
+                    {property.ownerContact && (
+                      <p className="text-sm text-muted-foreground">
+                        Kontak: {property.ownerContact}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
+
+      <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+        <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedProperty ? "Edit Properti" : "Tambah Properti Baru"}
+            </DialogTitle>
+          </DialogHeader>
+          <PropertyForm
+            property={selectedProperty}
+            onSuccess={() => {
+              setIsFormOpen(false);
+              queryClient.invalidateQueries({ queryKey: ['admin-properties'] });
+            }}
+          />
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }
