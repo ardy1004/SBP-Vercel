@@ -3,7 +3,6 @@
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import {
   BarChart3,
   FileText,
@@ -27,7 +26,7 @@ export default function AdminLayoutWrapper({
   const router = useRouter();
   const pathname = usePathname();
 
-  // Show welcome screen only on /admin root
+  // Show welcome screen only on /admin root (WITHOUT sidebar)
   if (pathname === '/admin') {
     const adminSections = [
       {
@@ -96,9 +95,26 @@ export default function AdminLayoutWrapper({
       }
     ];
 
+    // Welcome screen WITHOUT sidebar - clean, focused layout
     return (
-      <AdminLayout title="Admin Panel" subtitle="Manage your property business">
-        <div className="space-y-8">
+      <div className="min-h-screen bg-background">
+        {/* Simple Header - No sidebar */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-16 items-center px-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Activity className="h-4 w-4" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold">Admin Panel</h1>
+                <p className="text-xs text-muted-foreground">Salam Bumi Property</p>
+              </div>
+            </div>
+          </div>
+        </header>
+
+        {/* Welcome Content */}
+        <main className="flex-1 space-y-8 p-6">
           {/* Welcome Header */}
           <div className="text-center space-y-4">
             <h1 className="text-3xl font-bold">Welcome to Admin Panel</h1>
@@ -187,10 +203,11 @@ export default function AdminLayoutWrapper({
               </div>
             </CardContent>
           </Card>
-        </div>
-      </AdminLayout>
+        </main>
+      </div>
     );
   }
 
+  // For all other admin pages (/admin/dashboard, /admin/properties, etc.) - WITH sidebar
   return <AdminLayout>{children}</AdminLayout>;
 }
