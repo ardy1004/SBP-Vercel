@@ -1,24 +1,46 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClient, SupabaseClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
-console.log('🔧 Supabase Client Initialization:');
-console.log('URL:', supabaseUrl);
-console.log('Key present:', !!supabaseAnonKey);
+let supabaseClient: SupabaseClient | null = null
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-  auth: {
-    autoRefreshToken: true,
-    persistSession: true,
-    detectSessionInUrl: true
+// Create a client-only Supabase client to avoid SSR issues
+export function getSupabaseClient(): SupabaseClient {
+  // Prevent creation during SSR
+  if (typeof window === 'undefined') {
+    throw new Error('Supabase client can only be used on the client side')
   }
-})
 
-// Test connection immediately
-supabase.from('properties').select('count').limit(1).then(result => {
-  console.log('🔗 Supabase connection test:', result.error ? 'FAILED' : 'SUCCESS');
-  if (result.error) {
-    console.error('Supabase error:', result.error);
+  if (!supabaseClient) {
+    console.log('🔧 Supabase Client Initialization (Client-side):');
+    console.log('URL:', supabaseUrl);
+    console.log('Key present:', !!supabaseAnonKey);
+
+    supabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true
+      }
+    })
+
+    // Test connection (only on client)
+    supabaseClient.from('properties').select('count').limit(1).then(result => {
+      console.log('🔗 Supabase connection test:', result.error ? 'FAILED' : 'SUCCESS');
+      if (result.error) {
+        console.error('Supabase error:', result.error);
+      }
+    })
+  }
+
+  return supabaseClient
+}
+
+// For backward compatibility, but will throw error on server
+export const supabase = new Proxy({} as SupabaseClient, {
+  get(target, prop) {
+    const client = getSupabaseClient()
+    return (client as any)[prop]
   }
 })

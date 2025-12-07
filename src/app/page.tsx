@@ -1,9 +1,6 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
-
-// Force dynamic rendering to avoid SSR issues with localStorage
-export const dynamic = 'force-dynamic';
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { HeroSection } from "@/components/HeroSection";
@@ -14,17 +11,24 @@ import { SearchBar } from "@/components/SearchBar";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Property } from "@shared/types";
-import { supabase } from "@/lib/supabase";
+
+// Force dynamic rendering to avoid SSR issues with localStorage
+export const dynamic = 'force-dynamic';
 
 export default function HomePage() {
   const router = useRouter();
   const [searchFilters, setSearchFilters] = useState<any>({});
   const [advancedFilters, setAdvancedFilters] = useState<FilterValues>({});
   const [keyword, setKeyword] = useState<string>("");
-  const [favorites, setFavorites] = useState<string[]>(() => {
+  const [favorites, setFavorites] = useState<string[]>([]);
+
+  // Load favorites from localStorage on mount
+  useEffect(() => {
     const saved = localStorage.getItem('favorites');
-    return saved ? JSON.parse(saved) : [];
-  });
+    if (saved) {
+      setFavorites(JSON.parse(saved));
+    }
+  }, []);
 
   // Transform function to convert Supabase snake_case to camelCase
   const transformSupabaseProperty = (supabaseProperty: any): Property => {
@@ -73,6 +77,9 @@ export default function HomePage() {
     queryFn: async () => {
       console.log('🏠 HomePage: Fetching pilihan properties from Supabase...');
 
+      const { getSupabaseClient } = await import('@/lib/supabase');
+      const supabase = getSupabaseClient();
+
       const { data, error } = await supabase
         .from('properties')
         .select('*')
@@ -107,6 +114,9 @@ export default function HomePage() {
     queryKey: ['properties-infinite', searchFilters, advancedFilters, keyword],
     queryFn: async ({ pageParam = 0 }) => {
       console.log('🏠 HomePage: Fetching properties from Supabase...', { pageParam });
+
+      const { getSupabaseClient } = await import('@/lib/supabase');
+      const supabase = getSupabaseClient();
 
       const PAGE_SIZE = 8;
       let query = supabase

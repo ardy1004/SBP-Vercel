@@ -1,5 +1,4 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
-import { authService } from "./auth";
 
 async function throwIfResNotOk(res: Response) {
   if (!res.ok) {
@@ -13,9 +12,17 @@ export async function apiRequest(
   url: string,
   data?: unknown | undefined,
 ): Promise<any> {
-  const session = authService.getCurrentSession();
+  // Only perform auth operations on client side
+  let session = null;
+  let adminToken = null;
+
+  if (typeof window !== 'undefined') {
+    const { authService } = await import("./auth");
+    session = authService.getCurrentSession();
+    adminToken = localStorage.getItem('adminToken');
+  }
+
   const supabaseToken = session?.access_token;
-  const adminToken = localStorage.getItem('adminToken');
 
   // Use absolute URL for production, relative for development
   const isProduction = typeof window !== 'undefined' && window.location.hostname === 'salambumi.xyz';
@@ -91,9 +98,17 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    const session = authService.getCurrentSession();
+    // Only perform auth operations on client side
+    let session = null;
+    let adminToken = null;
+
+    if (typeof window !== 'undefined') {
+      const { authService } = await import("./auth");
+      session = authService.getCurrentSession();
+      adminToken = localStorage.getItem('adminToken');
+    }
+
     const supabaseToken = session?.access_token;
-    const adminToken = localStorage.getItem('adminToken');
     const headers: HeadersInit = {};
 
     // If queryKey has a single item, use it as-is (it's a complete URL)
