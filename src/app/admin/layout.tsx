@@ -208,6 +208,42 @@ export default function AdminLayoutWrapper({
     );
   }
 
-  // For all other admin pages (/admin/dashboard, /admin/properties, etc.) - WITH sidebar
+  // Dashboard page - NO sidebar, clean full-width layout
+  if (pathname === '/admin/dashboard') {
+    return (
+      <div className="min-h-screen bg-background">
+        {/* Simple Header for Dashboard - No sidebar */}
+        <header className="border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <div className="flex h-16 items-center px-6">
+            <div className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                <Activity className="h-4 w-4" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold">Dashboard</h1>
+                <p className="text-xs text-muted-foreground">Real-time overview</p>
+              </div>
+            </div>
+            {/* Back to welcome button */}
+            <div className="ml-auto">
+              <button
+                onClick={() => router.push('/admin')}
+                className="text-sm text-muted-foreground hover:text-primary transition-colors"
+              >
+                ← Back to Admin Panel
+              </button>
+            </div>
+          </div>
+        </header>
+
+        {/* Dashboard Content - Full width, no sidebar */}
+        <main className="flex-1">
+          {children}
+        </main>
+      </div>
+    );
+  }
+
+  // For all other admin pages (/admin/properties, /admin/page-builder, etc.) - WITH sidebar
   return <AdminLayout>{children}</AdminLayout>;
 }
