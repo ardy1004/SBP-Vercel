@@ -4,16 +4,26 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { AdminLayout } from "@/components/admin/AdminLayout";
 import { RealTimeDashboard } from "@/components/admin/RealTimeDashboard";
-import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import {
+  BarChart3,
+  FileText,
+  Palette,
+  Layout,
+  Users,
+  Settings,
+  TrendingUp,
+  Activity,
+  Eye,
+  MessageSquare
+} from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function EnhancedAdminDashboardPage() {
   const router = useRouter();
   const { isAdmin, loading } = useAuth();
-  const [searchQuery, setSearchQuery] = useState("");
-
-  // Force redeploy trigger - Advanced CMS Features Available
 
   // Redirect if not admin
   if (!loading && !isAdmin) {
@@ -21,70 +31,203 @@ export default function EnhancedAdminDashboardPage() {
     return null;
   }
 
-  const handleSearch = (query: string) => {
-    setSearchQuery(query);
-    // Implement search functionality across dashboard
-    console.log('Searching dashboard for:', query);
-  };
+  const quickActions = [
+    {
+      title: "Properties",
+      description: "Manage property listings",
+      icon: FileText,
+      color: "bg-blue-500",
+      action: () => router.push('/admin/properties'),
+      stats: "24 active"
+    },
+    {
+      title: "Page Builder",
+      description: "Customize website pages",
+      icon: Layout,
+      color: "bg-purple-500",
+      action: () => router.push('/admin/page-builder'),
+      stats: "3 layouts"
+    },
+    {
+      title: "Themes",
+      description: "Manage design themes",
+      icon: Palette,
+      color: "bg-green-500",
+      action: () => router.push('/admin/themes'),
+      stats: "5 themes"
+    },
+    {
+      title: "Analytics",
+      description: "View detailed analytics",
+      icon: BarChart3,
+      color: "bg-orange-500",
+      action: () => router.push('/admin/analytics'),
+      stats: "Real-time"
+    },
+    {
+      title: "Leads",
+      description: "Customer inquiries",
+      icon: Users,
+      color: "bg-red-500",
+      action: () => router.push('/admin/leads'),
+      stats: "12 new"
+    },
+    {
+      title: "Settings",
+      description: "System configuration",
+      icon: Settings,
+      color: "bg-gray-500",
+      action: () => router.push('/admin/integrations'),
+      stats: "5 services"
+    }
+  ];
+
+  const recentActivity = [
+    { action: "Property updated", target: "Villa Modern Jakarta", time: "2 min ago", type: "update" },
+    { action: "New inquiry", target: "John Doe - Apartment Search", time: "5 min ago", type: "inquiry" },
+    { action: "Theme applied", target: "Luxury Gold Theme", time: "12 min ago", type: "theme" },
+    { action: "Page published", target: "Homepage Layout v2", time: "1 hour ago", type: "publish" },
+  ];
 
   return (
     <AdminLayout
       title="Dashboard"
-      subtitle="Real-time overview of your property business"
-      showSearch={true}
-      onSearch={handleSearch}
-      notifications={3} // Mock notification count
+      subtitle="Welcome back! Here's your business overview"
     >
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="reports">Reports</TabsTrigger>
-        </TabsList>
+      <div className="space-y-8">
+        {/* Real-time Overview */}
+        <RealTimeDashboard />
 
-        <TabsContent value="overview" className="space-y-6">
-          <RealTimeDashboard />
-        </TabsContent>
+        {/* Quick Actions Grid */}
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-semibold">Quick Actions</h2>
+            <Badge variant="outline" className="text-xs">
+              Admin Tools
+            </Badge>
+          </div>
 
-        <TabsContent value="analytics" className="space-y-6">
-          <AnalyticsDashboard />
-        </TabsContent>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {quickActions.map((action, index) => {
+              const Icon = action.icon;
+              return (
+                <Card
+                  key={index}
+                  className="cursor-pointer hover:shadow-lg transition-all duration-200 hover:scale-105 group"
+                  onClick={action.action}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className={`p-3 rounded-lg ${action.color} text-white group-hover:scale-110 transition-transform`}>
+                        <Icon className="h-6 w-6" />
+                      </div>
+                      <Badge variant="secondary" className="text-xs">
+                        {action.stats}
+                      </Badge>
+                    </div>
+                    <h3 className="font-semibold text-lg mb-2 group-hover:text-primary transition-colors">
+                      {action.title}
+                    </h3>
+                    <p className="text-sm text-muted-foreground">
+                      {action.description}
+                    </p>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </div>
 
-        <TabsContent value="reports" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Report Cards */}
-            <div className="col-span-full">
-              <h3 className="text-lg font-semibold mb-4">Available Reports</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">Monthly Performance</h4>
-                  <p className="text-sm text-muted-foreground">Revenue, views, and conversion metrics</p>
+        {/* Recent Activity & System Status */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Recent Activity */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Activity className="h-5 w-5" />
+                Recent Activity
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {recentActivity.map((activity, index) => (
+                  <div key={index} className="flex items-start gap-3 p-3 rounded-lg hover:bg-muted/50 transition-colors">
+                    <div className={`p-2 rounded-full ${
+                      activity.type === 'update' ? 'bg-blue-100 text-blue-600' :
+                      activity.type === 'inquiry' ? 'bg-green-100 text-green-600' :
+                      activity.type === 'theme' ? 'bg-purple-100 text-purple-600' :
+                      'bg-orange-100 text-orange-600'
+                    }`}>
+                      {activity.type === 'update' && <FileText className="h-4 w-4" />}
+                      {activity.type === 'inquiry' && <MessageSquare className="h-4 w-4" />}
+                      {activity.type === 'theme' && <Palette className="h-4 w-4" />}
+                      {activity.type === 'publish' && <Eye className="h-4 w-4" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium">{activity.action}</p>
+                      <p className="text-sm text-muted-foreground truncate">{activity.target}</p>
+                      <p className="text-xs text-muted-foreground mt-1">{activity.time}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* System Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5" />
+                System Status
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">Database</span>
+                  </div>
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    Online
+                  </Badge>
                 </div>
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">Property Analytics</h4>
-                  <p className="text-sm text-muted-foreground">Most viewed and highest converting properties</p>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">API Services</span>
+                  </div>
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    Healthy
+                  </Badge>
                 </div>
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">Lead Analysis</h4>
-                  <p className="text-sm text-muted-foreground">Lead sources and conversion rates</p>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                    <span className="text-sm font-medium">File Storage</span>
+                  </div>
+                  <Badge variant="outline" className="text-green-600 border-green-600">
+                    Active
+                  </Badge>
                 </div>
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">SEO Performance</h4>
-                  <p className="text-sm text-muted-foreground">Search rankings and organic traffic</p>
-                </div>
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">Market Trends</h4>
-                  <p className="text-sm text-muted-foreground">Property market analysis and trends</p>
-                </div>
-                <div className="p-4 border rounded-lg hover:shadow-md transition-shadow cursor-pointer">
-                  <h4 className="font-medium">Custom Report</h4>
-                  <p className="text-sm text-muted-foreground">Build your own custom analytics report</p>
+
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div className="flex items-center gap-3">
+                    <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
+                    <span className="text-sm font-medium">Last Backup</span>
+                  </div>
+                  <Badge variant="outline">
+                    2 hours ago
+                  </Badge>
                 </div>
               </div>
-            </div>
-          </div>
-        </TabsContent>
-      </Tabs>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </AdminLayout>
   );
 }

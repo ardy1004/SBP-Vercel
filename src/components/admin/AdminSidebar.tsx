@@ -8,15 +8,54 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    { path: "/admin/dashboard", label: "Dashboard", icon: Home },
-    { path: "/admin/properties", label: "Properti", icon: FileText },
-    { path: "/admin/page-builder", label: "Page Builder", icon: Layout },
-    { path: "/admin/themes", label: "Themes", icon: Palette },
-    { path: "/admin/analytics", label: "Analytics", icon: BarChart3 },
-    { path: "/admin/leads", label: "Leads", icon: Users },
-    { path: "/admin/search-console", label: "Search Console", icon: Search },
-    { path: "/admin/page-insights", label: "Page Insights", icon: Zap },
-    { path: "/admin/integrations", label: "Integrasi", icon: Settings },
+    {
+      path: "/admin/dashboard",
+      label: "Dashboard",
+      icon: Home,
+      description: "Overview & quick actions"
+    },
+    {
+      path: "/admin/properties",
+      label: "Properties",
+      icon: FileText,
+      description: "Manage listings"
+    },
+    {
+      path: "/admin/page-builder",
+      label: "Page Builder",
+      icon: Layout,
+      description: "Design website pages"
+    },
+    {
+      path: "/admin/themes",
+      label: "Themes",
+      icon: Palette,
+      description: "Customize appearance"
+    },
+    {
+      path: "/admin/analytics",
+      label: "Analytics",
+      icon: BarChart3,
+      description: "Traffic & performance"
+    },
+    {
+      path: "/admin/leads",
+      label: "Leads",
+      icon: Users,
+      description: "Customer inquiries"
+    },
+    {
+      path: "/admin/search-console",
+      label: "SEO Tools",
+      icon: Search,
+      description: "Search optimization"
+    },
+    {
+      path: "/admin/integrations",
+      label: "Settings",
+      icon: Settings,
+      description: "System configuration"
+    },
   ];
 
   const handleLogout = () => {
@@ -31,23 +70,32 @@ export function AdminSidebar() {
         <p className="text-sm text-muted-foreground">Salam Bumi Property</p>
       </div>
 
-      <nav className="flex-1 p-4 space-y-2">
+      <nav className="flex-1 p-4 space-y-1">
         {menuItems.map((item) => {
           const Icon = item.icon;
           const isActive = pathname === item.path;
 
           return (
             <Link key={item.path} href={item.path} data-testid={`link-${item.label.toLowerCase()}`}>
-              <button
-                className={`w-full flex items-center gap-3 px-4 py-3 rounded-md transition-colors hover-elevate ${
+              <div
+                className={`w-full p-3 rounded-lg transition-all duration-200 hover-elevate cursor-pointer ${
                   isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                    : "text-sidebar-foreground"
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                    : "text-sidebar-foreground hover:bg-sidebar-accent/50"
                 }`}
               >
-                <Icon className="h-5 w-5" />
-                <span className="font-medium">{item.label}</span>
-              </button>
+                <div className="flex items-center gap-3 mb-1">
+                  <Icon className={`h-5 w-5 ${isActive ? 'text-primary' : ''}`} />
+                  <span className="font-medium text-sm">{item.label}</span>
+                </div>
+                <p className={`text-xs ml-8 ${
+                  isActive
+                    ? 'text-sidebar-accent-foreground/80'
+                    : 'text-sidebar-foreground/60'
+                }`}>
+                  {item.description}
+                </p>
+              </div>
             </Link>
           );
         })}
