@@ -71,7 +71,7 @@ export async function generatePropertyDescription(propertyData: {
 // Generate description using Google Gemini API with model selection
 async function fetchGeminiDescription(prompt: string, propertyData: any, model: string = 'gemini-1.5-flash'): Promise<string | null> {
   const response = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+    `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${process.env.NEXT_PUBLIC_GEMINI_API_KEY}`,
     {
       method: 'POST',
       headers: {
@@ -114,7 +114,7 @@ async function fetchOpenAIDescription(prompt: string, propertyData: any): Promis
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`,
+        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
         model: 'gpt-3.5-turbo',
