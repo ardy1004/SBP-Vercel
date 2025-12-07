@@ -60,40 +60,46 @@ export default function PropertyDetailPage() {
         query = query.ilike('judul_properti', `%${slugInfo.judul_properti}%`);
       }
 
-      const { data, error } = await query.limit(1).single();
+      const { data, error } = await query.limit(1);
 
       if (error) {
         console.error('❌ PropertyDetailPage: Supabase query error:', error);
-        // Try fallback search by partial match
-        const fallbackQuery = supabase
-          .from('properties')
-          .select('*')
-          .or(`judul_properti.ilike.%${slugInfo.judul_properti}%,kabupaten.ilike.%${slugInfo.kabupaten}%`)
-          .limit(5);
+      }
 
-        const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+      // If we found a property with exact match, return it
+      if (data && data.length > 0) {
+        console.log('✅ PropertyDetailPage: Found property with exact match:', data[0].id);
+        return transformSupabaseProperty(data[0]);
+      }
 
-        if (fallbackError) {
-          console.error('❌ PropertyDetailPage: Fallback query also failed:', fallbackError);
-          return null;
-        }
+      // Try fallback search by partial match
+      console.log('🔄 PropertyDetailPage: No exact match, trying fallback search...');
+      const fallbackQuery = supabase
+        .from('properties')
+        .select('*')
+        .or(`judul_properti.ilike.%${slugInfo.judul_properti || ''}%,kabupaten.ilike.%${slugInfo.kabupaten || ''}%`)
+        .limit(5);
 
-        // Find best match from fallback results
-        const bestMatch = fallbackData?.find(p =>
-          p.status === slugInfo.status &&
-          p.jenis_properti === slugInfo.jenis_properti
-        ) || fallbackData?.[0];
+      const { data: fallbackData, error: fallbackError } = await fallbackQuery;
 
-        if (bestMatch) {
-          console.log('✅ PropertyDetailPage: Found property via fallback:', bestMatch.id);
-          return transformSupabaseProperty(bestMatch);
-        }
-
+      if (fallbackError) {
+        console.error('❌ PropertyDetailPage: Fallback query also failed:', fallbackError);
         return null;
       }
 
-      console.log('✅ PropertyDetailPage: Found property:', data.id);
-      return transformSupabaseProperty(data);
+      // Find best match from fallback results
+      const bestMatch = fallbackData?.find(p =>
+        p.status === slugInfo.status &&
+        p.jenis_properti === slugInfo.jenis_properti
+      ) || fallbackData?.[0];
+
+      if (bestMatch) {
+        console.log('✅ PropertyDetailPage: Found property via fallback:', bestMatch.id);
+        return transformSupabaseProperty(bestMatch);
+      }
+
+      console.log('❌ PropertyDetailPage: No property found with any search method');
+      return null;
     },
     enabled: !!slugInfo,
   });
