@@ -1,5 +1,5 @@
 import { ReactNode } from "react";
-import { EnhancedAdminSidebar } from "./EnhancedAdminSidebar";
+import { AdminSidebar } from "./AdminSidebar";
 import { AdminHeader } from "./AdminHeader";
 import { ThemeProvider } from "@/hooks/use-theme";
 
@@ -25,7 +25,7 @@ export function AdminLayout({
       <div className="min-h-screen bg-background">
         <div className="flex">
           {/* Sidebar */}
-          <EnhancedAdminSidebar />
+          <AdminSidebar />
 
           {/* Main Content */}
           <div className="flex-1 flex flex-col min-w-0">
