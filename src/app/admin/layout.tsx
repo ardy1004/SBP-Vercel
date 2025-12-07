@@ -245,5 +245,5 @@ export default function AdminLayoutWrapper({
   }
 
   // For all other admin pages (/admin/properties, /admin/page-builder, etc.) - WITH sidebar
-  return <AdminLayout>{children}</AdminLayout>;
+  return <AdminLayout showSidebar={true}>{children}</AdminLayout>;
 }

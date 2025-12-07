@@ -10,6 +10,7 @@ interface AdminLayoutProps {
   showSearch?: boolean;
   onSearch?: (query: string) => void;
   notifications?: number;
+  showSidebar?: boolean; // New prop to control sidebar visibility
 }
 
 export function AdminLayout({
@@ -18,17 +19,18 @@ export function AdminLayout({
   subtitle,
   showSearch,
   onSearch,
-  notifications
+  notifications,
+  showSidebar = true // Default to true for backward compatibility
 }: AdminLayoutProps) {
   return (
     <ThemeProvider defaultTheme="system" storageKey="salambumi-admin-theme">
       <div className="min-h-screen bg-background">
         <div className="flex">
-          {/* Sidebar */}
-          <AdminSidebar />
+          {/* Sidebar - Only show if showSidebar is true */}
+          {showSidebar && <AdminSidebar />}
 
           {/* Main Content */}
-          <div className="flex-1 flex flex-col min-w-0">
+          <div className={`flex-1 flex flex-col min-w-0 ${!showSidebar ? 'w-full' : ''}`}>
             {/* Header */}
             <AdminHeader
               title={title}
