@@ -411,8 +411,8 @@ export function AIDescriptionGenerator({
            <div className="text-xs text-blue-800 space-y-1">
              <div className="flex items-center gap-2">
                <span>• Google Gemini:</span>
-               <span className={import.meta.env.VITE_GEMINI_API_KEY ? "text-green-600" : "text-orange-600"}>
-                 {import.meta.env.VITE_GEMINI_API_KEY ? "✅ Active" : "⚠️ No API Key"}
+               <span className={process.env.NEXT_PUBLIC_GEMINI_API_KEY ? "text-green-600" : "text-orange-600"}>
+                 {process.env.NEXT_PUBLIC_GEMINI_API_KEY ? "✅ Active" : "⚠️ No API Key"}
                </span>
              </div>
              <div className="text-gray-600 mt-1">
