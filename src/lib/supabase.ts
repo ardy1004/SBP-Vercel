@@ -37,10 +37,12 @@ export function getSupabaseClient(): SupabaseClient {
   return supabaseClient
 }
 
-// For backward compatibility, but will throw error on server
-export const supabase = new Proxy({} as SupabaseClient, {
-  get(target, prop) {
-    const client = getSupabaseClient()
-    return (client as any)[prop]
+// Export for server-side usage (API routes, server components)
+// This is safe because it's only used in server environments
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    autoRefreshToken: true,
+    persistSession: true,
+    detectSessionInUrl: true
   }
 })
