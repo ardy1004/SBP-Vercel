@@ -1,4 +1,4 @@
-import { Link } from "wouter";
+import Link from "next/link";
 import { MapPin, Bed, Bath, Maximize, Heart, TrendingDown, Eye } from "lucide-react";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -165,7 +165,7 @@ export function PropertyCard({ property, onToggleFavorite, isFavorite }: Propert
       data-testid={`card-property-${property.id}`}
     >
       {/* Main Link Area */}
-      <div onClick={() => window.location.href = slug} className="block cursor-pointer">
+      <Link href={`/properties${slug}`} className="block cursor-pointer">
         {/* Image Container - Adjusted padding for mobile */}
         <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-gray-100 to-gray-200 p-1 sm:p-2">
           <ResponsiveImage
@@ -261,7 +261,7 @@ export function PropertyCard({ property, onToggleFavorite, isFavorite }: Propert
             </Button>
           )}
         </div>
-      </div>
+      </Link>
 
       {/* Content - Adjusted padding for mobile */}
       <div className="p-3 sm:p-4 space-y-2 sm:space-y-3">
@@ -271,18 +271,16 @@ export function PropertyCard({ property, onToggleFavorite, isFavorite }: Propert
             <p className="text-xs font-mono text-gray-500 mb-1.5 sm:mb-1" data-testid="text-kode-listing">
               {property.kodeListing}
             </p>
-            <Link href={slug}>
-              <h3
-                className="
-                  text-sm font-bold text-gray-900 line-clamp-2
-                  hover:text-blue-600 transition-colors duration-200
-                  cursor-pointer leading-snug mb-1.5 sm:mb-2
-                "
-                data-testid="text-title"
-              >
-                {getTitle()}
-              </h3>
-            </Link>
+            <h3
+              className="
+                text-sm font-bold text-gray-900 line-clamp-2
+                hover:text-blue-600 transition-colors duration-200
+                cursor-pointer leading-snug mb-1.5 sm:mb-2
+              "
+              data-testid="text-title"
+            >
+              {getTitle()}
+            </h3>
           </div>
         </div>
 
@@ -371,18 +369,16 @@ export function PropertyCard({ property, onToggleFavorite, isFavorite }: Propert
 
         {/* Footer Actions - More compact for mobile */}
         <div className="flex items-center justify-end pt-1.5 sm:pt-3 border-t border-gray-100">
-          <Button
-            size="sm"
-            className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white"
-            onClick={() => {
-              // Use window.location for reliable navigation
-              window.location.href = slug;
-            }}
-            data-testid="button-lihat-detail"
-          >
-            <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
-            Lihat Detail
-          </Button>
+          <Link href={`/properties${slug}`}>
+            <Button
+              size="sm"
+              className="h-7 sm:h-8 px-2 sm:px-3 text-[10px] sm:text-xs font-medium bg-blue-600 hover:bg-blue-700 text-white"
+              data-testid="button-lihat-detail"
+            >
+              <Eye className="h-2.5 w-2.5 sm:h-3 sm:w-3 mr-1" />
+              Lihat Detail
+            </Button>
+          </Link>
         </div>
       </div>
     </Card>
