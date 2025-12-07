@@ -135,7 +135,7 @@ export function RealTimeDashboard() {
         }
       };
     },
-    refetchInterval: 30000, // Refetch every 30 seconds
+    refetchInterval: 120000, // Refetch every 2 minutes for better performance
     staleTime: 10000, // Consider data stale after 10 seconds
   });
 
@@ -197,7 +197,7 @@ export function RealTimeDashboard() {
         .sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime())
         .slice(0, 10);
     },
-    refetchInterval: 60000, // Refetch every minute
+    refetchInterval: 300000, // Refetch every 5 minutes for better performance
   });
 
   // Live visitor counter (simulated for demo)

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense, lazy } from 'react';
 
 // Force dynamic rendering to avoid SSR issues with localStorage
 export const dynamic = 'force-dynamic';
@@ -31,15 +31,19 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { HeroSection } from '@/components/HeroSection';
-import { PropertyPilihanSlider } from '@/components/PropertyPilihanSlider';
-import { Footer } from '@/components/Footer';
-import { Navigation } from '@/components/Navigation';
-import { PropertyCard } from '@/components/PropertyCard';
-import { InquiryForm } from '@/components/InquiryForm';
-import { SearchBar } from '@/components/SearchBar';
-import { AdvancedFilters } from '@/components/AdvancedFilters';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/lib/supabase';
+import { useToast } from '@/hooks/use-toast';
+
+// Lazy load heavy components for better performance
+const HeroSection = lazy(() => import('@/components/HeroSection').then(module => ({ default: module.HeroSection })));
+const PropertyPilihanSlider = lazy(() => import('@/components/PropertyPilihanSlider').then(module => ({ default: module.PropertyPilihanSlider })));
+const Footer = lazy(() => import('@/components/Footer').then(module => ({ default: module.Footer })));
+const Navigation = lazy(() => import('@/components/Navigation').then(module => ({ default: module.Navigation })));
+const PropertyCard = lazy(() => import('@/components/PropertyCard').then(module => ({ default: module.PropertyCard })));
+const InquiryForm = lazy(() => import('@/components/InquiryForm').then(module => ({ default: module.InquiryForm })));
+const SearchBar = lazy(() => import('@/components/SearchBar').then(module => ({ default: module.SearchBar })));
+const AdvancedFilters = lazy(() => import('@/components/AdvancedFilters').then(module => ({ default: module.AdvancedFilters })));
 
 // Widget types
 interface Widget {
@@ -86,56 +90,94 @@ function SortableWidget({ widget, onEdit }: { widget: Widget; onEdit: (widget: W
   };
 
   const renderWidget = () => {
+    const LoadingFallback = () => (
+      <div className="p-4 bg-white rounded-lg shadow">
+        <Skeleton className="h-6 w-3/4 mb-2" />
+        <Skeleton className="h-4 w-full mb-1" />
+        <Skeleton className="h-4 w-2/3" />
+      </div>
+    );
+
     switch (widget.type) {
       case 'hero':
-        return <HeroSection onSearch={() => {}} {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <HeroSection onSearch={() => {}} {...widget.props} />
+          </Suspense>
+        );
       case 'navigation':
-        return <Navigation {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <Navigation {...widget.props} />
+          </Suspense>
+        );
       case 'property-slider':
-        return <PropertyPilihanSlider properties={[]} {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <PropertyPilihanSlider properties={[]} {...widget.props} />
+          </Suspense>
+        );
       case 'property-card':
         return (
           <div className="max-w-sm">
-            <PropertyCard
-              property={{
-                id: 'demo',
-                kodeListing: 'DEMO001',
-                judulProperti: 'Demo Property',
-                deskripsi: 'Demo property for preview',
-                jenisProperti: 'rumah',
-                hargaProperti: '500000000',
-                imageUrl: 'https://via.placeholder.com/400x300',
-                status: 'dijual',
-                provinsi: 'demo',
-                kabupaten: 'demo',
-                alamatLengkap: 'Demo Address',
-                luasTanah: '100',
-                luasBangunan: '80',
-                kamarTidur: 3,
-                kamarMandi: 2,
-                legalitas: 'SHM',
-                isPremium: false,
-                isFeatured: false,
-                isHot: false,
-                isSold: false,
-                isPropertyPilihan: false,
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              }}
-              onToggleFavorite={() => {}}
-              isFavorite={false}
-              {...widget.props}
-            />
+            <Suspense fallback={<LoadingFallback />}>
+              <PropertyCard
+                property={{
+                  id: 'demo',
+                  kodeListing: 'DEMO001',
+                  judulProperti: 'Demo Property',
+                  deskripsi: 'Demo property for preview',
+                  jenisProperti: 'rumah',
+                  hargaProperti: '500000000',
+                  imageUrl: 'https://via.placeholder.com/400x300',
+                  status: 'dijual',
+                  provinsi: 'demo',
+                  kabupaten: 'demo',
+                  alamatLengkap: 'Demo Address',
+                  luasTanah: '100',
+                  luasBangunan: '80',
+                  kamarTidur: 3,
+                  kamarMandi: 2,
+                  legalitas: 'SHM',
+                  isPremium: false,
+                  isFeatured: false,
+                  isHot: false,
+                  isSold: false,
+                  isPropertyPilihan: false,
+                  createdAt: new Date(),
+                  updatedAt: new Date(),
+                }}
+                onToggleFavorite={() => {}}
+                isFavorite={false}
+                {...widget.props}
+              />
+            </Suspense>
           </div>
         );
       case 'inquiry-form':
-        return <InquiryForm propertyId="demo" {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <InquiryForm propertyId="demo" {...widget.props} />
+          </Suspense>
+        );
       case 'search-bar':
-        return <SearchBar onSearch={() => {}} {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <SearchBar onSearch={() => {}} {...widget.props} />
+          </Suspense>
+        );
       case 'filters':
-        return <AdvancedFilters onApplyFilters={() => {}} currentFilters={{}} {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <AdvancedFilters onApplyFilters={() => {}} currentFilters={{}} {...widget.props} />
+          </Suspense>
+        );
       case 'footer':
-        return <Footer {...widget.props} />;
+        return (
+          <Suspense fallback={<LoadingFallback />}>
+            <Footer {...widget.props} />
+          </Suspense>
+        );
       case 'text':
         return (
           <div className="p-4 bg-white rounded-lg shadow">
@@ -171,6 +213,8 @@ function SortableWidget({ widget, onEdit }: { widget: Widget; onEdit: (widget: W
 }
 
 export default function PageBuilderClient() {
+  const { toast } = useToast();
+
   const [widgets, setWidgets] = useState<Widget[]>([
     { id: 'hero-1', type: 'hero', props: {} },
     { id: 'slider-1', type: 'property-slider', props: {} },
@@ -182,6 +226,8 @@ export default function PageBuilderClient() {
   const [layouts, setLayouts] = useState<any[]>([]);
   const [currentLayout, setCurrentLayout] = useState<string>('homepage');
   const [isPreviewMode, setIsPreviewMode] = useState(false);
+  const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -210,6 +256,7 @@ export default function PageBuilderClient() {
       props: {},
     };
     setWidgets([...widgets, newWidget]);
+    setHasUnsavedChanges(true);
   };
 
   const updateWidget = (updatedWidget: Widget) => {
@@ -223,7 +270,7 @@ export default function PageBuilderClient() {
   };
 
   // Save layout to Supabase
-  const saveLayout = async () => {
+  const saveLayout = async (isAutoSave = false) => {
     try {
       const layoutData = {
         name: currentLayout,
@@ -237,10 +284,24 @@ export default function PageBuilderClient() {
 
       if (error) throw error;
 
-      alert('Layout saved successfully!');
+      setLastSaved(new Date());
+      setHasUnsavedChanges(false);
+
+      if (!isAutoSave) {
+        toast({
+          title: "Layout Saved",
+          description: "Your page layout has been saved successfully.",
+        });
+      }
     } catch (error) {
       console.error('Error saving layout:', error);
-      alert('Failed to save layout');
+      if (!isAutoSave) {
+        toast({
+          title: "Save Failed",
+          description: "Failed to save layout. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -284,13 +345,45 @@ export default function PageBuilderClient() {
     loadLayout(currentLayout);
   }, []);
 
+  // Auto-save functionality
+  useEffect(() => {
+    if (hasUnsavedChanges) {
+      const autoSaveTimer = setTimeout(() => {
+        saveLayout(true); // Auto-save
+      }, 30000); // Auto-save every 30 seconds
+
+      return () => clearTimeout(autoSaveTimer);
+    }
+  }, [widgets, hasUnsavedChanges]);
+
+  // Track changes
+  useEffect(() => {
+    setHasUnsavedChanges(true);
+  }, [widgets]);
+
   return (
     <div className="flex h-screen">
       {/* Canvas */}
       <div className="flex-1 p-4 overflow-auto">
         <div className="mb-4">
-          <h1 className="text-2xl font-bold">Page Builder</h1>
-          <p className="text-muted-foreground">Drag and drop widgets to build your page</p>
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold">Page Builder</h1>
+              <p className="text-muted-foreground">Drag and drop widgets to build your page</p>
+            </div>
+            <div className="flex items-center gap-4 text-sm">
+              {hasUnsavedChanges && (
+                <Badge variant="outline" className="text-orange-600 border-orange-600">
+                  Unsaved Changes
+                </Badge>
+              )}
+              {lastSaved && (
+                <span className="text-muted-foreground">
+                  Last saved: {lastSaved.toLocaleTimeString()}
+                </span>
+              )}
+            </div>
+          </div>
         </div>
 
         <DndContext
@@ -365,7 +458,7 @@ export default function PageBuilderClient() {
             </div>
 
             <div className="space-y-2">
-              <Button onClick={saveLayout} className="w-full">
+              <Button onClick={() => saveLayout()} className="w-full">
                 Save Layout
               </Button>
               <Button variant="outline" onClick={() => loadLayout(currentLayout)} className="w-full">
