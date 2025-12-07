@@ -85,7 +85,7 @@ export async function safeAsync<T>(
 
 // Log error for debugging (only in development)
 export function logError(error: AppError, context?: string): void {
-  if (import.meta.env.DEV) {
+  if (process.env.NODE_ENV === 'development') {
     console.error(`[${context || 'App'}] Error:`, {
       message: error.message,
       code: error.code,
