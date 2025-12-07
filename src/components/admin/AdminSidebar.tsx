@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { useRouter, usePathname } from "next/navigation";
-import { Home, FileText, BarChart3, Settings, LogOut, Upload, Search, Zap, Users, Palette, Layout } from "lucide-react";
+import { FileText, BarChart3, Settings, LogOut, Upload, Search, Zap, Users, Palette, Layout } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 export function AdminSidebar() {
@@ -8,12 +8,6 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const menuItems = [
-    {
-      path: "/admin/dashboard",
-      label: "Dashboard",
-      icon: Home,
-      description: "Overview & quick actions"
-    },
     {
       path: "/admin/properties",
       label: "Properties",
