@@ -1,6 +1,9 @@
 'use client';
 
 import { useState, useCallback, useEffect } from "react";
+
+// Force dynamic rendering to avoid SSR issues with localStorage
+export const dynamic = 'force-dynamic';
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { HeroSection } from "@/components/HeroSection";
