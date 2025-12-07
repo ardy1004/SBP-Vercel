@@ -13,6 +13,8 @@ export default function EnhancedAdminDashboardPage() {
   const { isAdmin, loading } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
 
+  // Force redeploy trigger - Advanced CMS Features Available
+
   // Redirect if not admin
   if (!loading && !isAdmin) {
     router.push('/admin/login');
