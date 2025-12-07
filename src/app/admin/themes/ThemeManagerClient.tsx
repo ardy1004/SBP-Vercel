@@ -10,6 +10,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { supabase } from '@/lib/supabase';
 
 // Theme interface
 interface Theme {
@@ -93,6 +96,9 @@ export default function ThemeManagerClient() {
   const [themes, setThemes] = useState<Theme[]>(defaultThemes);
   const [selectedTheme, setSelectedTheme] = useState<Theme | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [savedThemes, setSavedThemes] = useState<Theme[]>([]);
 
   const setActiveTheme = (themeId: string) => {
     setThemes(themes.map(theme => ({
@@ -133,6 +139,72 @@ export default function ThemeManagerClient() {
     setIsEditing(true);
   };
 
+  // AI-powered theme generation
+  const generateAITheme = async () => {
+    if (!aiPrompt.trim()) return;
+
+    setIsGenerating(true);
+    try {
+      const response = await fetch('/api/gemini', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: `Generate a beautiful color palette and theme suggestions for: ${aiPrompt}. Return a JSON object with colors (primary, secondary, background, foreground as hex codes), fonts (heading, body), and spacing (borderRadius). Make it modern and professional.`
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.theme) {
+        const aiTheme: Theme = {
+          id: `ai-${Date.now()}`,
+          name: `AI: ${aiPrompt.slice(0, 20)}...`,
+          colors: data.theme.colors,
+          fonts: data.theme.fonts,
+          spacing: data.theme.spacing,
+          isActive: false,
+        };
+
+        setThemes([...themes, aiTheme]);
+        setAiPrompt('');
+      }
+    } catch (error) {
+      console.error('AI theme generation failed:', error);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  // Save theme to Supabase
+  const saveTheme = async (theme: Theme) => {
+    try {
+      const { data, error } = await supabase
+        .from('themes')
+        .upsert(theme, { onConflict: 'id' });
+
+      if (error) throw error;
+      alert('Theme saved successfully!');
+    } catch (error) {
+      console.error('Error saving theme:', error);
+      alert('Failed to save theme');
+    }
+  };
+
+  // Load themes from Supabase
+  const loadThemes = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('themes')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setSavedThemes(data || []);
+    } catch (error) {
+      console.error('Error loading themes:', error);
+    }
+  };
+
   return (
     <div className="p-6">
       <div className="mb-6">
@@ -140,11 +212,21 @@ export default function ThemeManagerClient() {
         <p className="text-muted-foreground">Create and manage themes for your website</p>
       </div>
 
-      <div className="mb-4">
-        <Button onClick={createNewTheme}>Create New Theme</Button>
-      </div>
+      <Tabs defaultValue="themes" className="space-y-6">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="themes">Themes</TabsTrigger>
+          <TabsTrigger value="ai">AI Generator</TabsTrigger>
+          <TabsTrigger value="saved">Saved Themes</TabsTrigger>
+          <TabsTrigger value="marketplace">Marketplace</TabsTrigger>
+        </TabsList>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <TabsContent value="themes" className="space-y-4">
+          <div className="flex gap-2">
+            <Button onClick={createNewTheme}>Create New Theme</Button>
+            <Button variant="outline" onClick={loadThemes}>Load Saved Themes</Button>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {themes.map((theme) => (
           <Card key={theme.id} className={`relative ${theme.isActive ? 'ring-2 ring-primary' : ''}`}>
             <CardHeader>
@@ -199,7 +281,96 @@ export default function ThemeManagerClient() {
             </CardContent>
           </Card>
         ))}
-      </div>
+          </div>
+        </TabsContent>
+
+        <TabsContent value="ai" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>AI Theme Generator</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <Label htmlFor="ai-prompt">Describe your desired theme</Label>
+                <Textarea
+                  id="ai-prompt"
+                  placeholder="e.g., Modern luxury real estate website with warm colors and elegant typography"
+                  value={aiPrompt}
+                  onChange={(e) => setAiPrompt(e.target.value)}
+                  rows={3}
+                />
+              </div>
+              <Button
+                onClick={generateAITheme}
+                disabled={!aiPrompt.trim() || isGenerating}
+                className="w-full"
+              >
+                {isGenerating ? 'Generating...' : 'Generate AI Theme'}
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="saved" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {savedThemes.map((theme) => (
+              <Card key={theme.id} className="relative">
+                <CardHeader>
+                  <div className="flex items-center justify-between">
+                    <CardTitle className="text-lg">{theme.name}</CardTitle>
+                    <Badge variant="secondary">Saved</Badge>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div
+                    className="p-4 rounded-lg mb-4"
+                    style={{
+                      backgroundColor: theme.colors.background,
+                      color: theme.colors.foreground,
+                      borderRadius: theme.spacing.borderRadius,
+                    }}
+                  >
+                    <div
+                      className="w-full h-2 rounded mb-2"
+                      style={{ backgroundColor: theme.colors.primary }}
+                    />
+                    <div className="text-sm" style={{ fontFamily: theme.fonts.body }}>
+                      Preview
+                    </div>
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => saveTheme(theme)}
+                    className="w-full"
+                  >
+                    Apply Theme
+                  </Button>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="marketplace" className="space-y-4">
+          <Card>
+            <CardHeader>
+              <CardTitle>Theme Marketplace</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Share and download community-created themes
+              </p>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-8">
+                <p className="text-muted-foreground">Marketplace feature coming soon!</p>
+                <p className="text-sm text-muted-foreground mt-2">
+                  Share your custom themes with the community
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
 
       {/* Edit Theme Modal */}
       {isEditing && selectedTheme && (

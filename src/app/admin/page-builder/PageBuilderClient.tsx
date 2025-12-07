@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
 // Force dynamic rendering to avoid SSR issues with localStorage
 export const dynamic = 'force-dynamic';
@@ -22,21 +22,53 @@ import {
   useSortable,
 } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
+import { ResizablePanelGroup, ResizablePanel, ResizableHandle } from '@/components/ui/resizable';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { HeroSection } from '@/components/HeroSection';
 import { PropertyPilihanSlider } from '@/components/PropertyPilihanSlider';
 import { Footer } from '@/components/Footer';
+import { Navigation } from '@/components/Navigation';
+import { PropertyCard } from '@/components/PropertyCard';
+import { InquiryForm } from '@/components/InquiryForm';
+import { SearchBar } from '@/components/SearchBar';
+import { AdvancedFilters } from '@/components/AdvancedFilters';
+import { supabase } from '@/lib/supabase';
 
 // Widget types
 interface Widget {
   id: string;
-  type: 'hero' | 'property-slider' | 'footer' | 'text' | 'image';
+  type: 'hero' | 'property-slider' | 'footer' | 'text' | 'image' | 'navigation' | 'property-card' | 'inquiry-form' | 'search-bar' | 'filters';
   props: Record<string, any>;
+  size?: {
+    width: number;
+    height: number;
+  };
+  position?: {
+    x: number;
+    y: number;
+  };
 }
+
+// Available widgets
+const AVAILABLE_WIDGETS = [
+  { type: 'hero', label: 'Hero Section', icon: '🏠', category: 'Layout' },
+  { type: 'navigation', label: 'Navigation', icon: '🧭', category: 'Layout' },
+  { type: 'property-slider', label: 'Property Slider', icon: '🏢', category: 'Content' },
+  { type: 'property-card', label: 'Property Card', icon: '📄', category: 'Content' },
+  { type: 'search-bar', label: 'Search Bar', icon: '🔍', category: 'Interactive' },
+  { type: 'filters', label: 'Advanced Filters', icon: '⚙️', category: 'Interactive' },
+  { type: 'inquiry-form', label: 'Inquiry Form', icon: '📝', category: 'Interactive' },
+  { type: 'text', label: 'Text Block', icon: '📝', category: 'Content' },
+  { type: 'image', label: 'Image', icon: '🖼️', category: 'Media' },
+  { type: 'footer', label: 'Footer', icon: '📄', category: 'Layout' },
+];
 
 // Sortable Widget Component
 function SortableWidget({ widget, onEdit }: { widget: Widget; onEdit: (widget: Widget) => void }) {
@@ -57,8 +89,51 @@ function SortableWidget({ widget, onEdit }: { widget: Widget; onEdit: (widget: W
     switch (widget.type) {
       case 'hero':
         return <HeroSection onSearch={() => {}} {...widget.props} />;
+      case 'navigation':
+        return <Navigation {...widget.props} />;
       case 'property-slider':
         return <PropertyPilihanSlider properties={[]} {...widget.props} />;
+      case 'property-card':
+        return (
+          <div className="max-w-sm">
+            <PropertyCard
+              property={{
+                id: 'demo',
+                kodeListing: 'DEMO001',
+                judulProperti: 'Demo Property',
+                deskripsi: 'Demo property for preview',
+                jenisProperti: 'rumah',
+                hargaProperti: '500000000',
+                imageUrl: 'https://via.placeholder.com/400x300',
+                status: 'dijual',
+                provinsi: 'demo',
+                kabupaten: 'demo',
+                alamatLengkap: 'Demo Address',
+                luasTanah: '100',
+                luasBangunan: '80',
+                kamarTidur: 3,
+                kamarMandi: 2,
+                legalitas: 'SHM',
+                isPremium: false,
+                isFeatured: false,
+                isHot: false,
+                isSold: false,
+                isPropertyPilihan: false,
+                createdAt: new Date(),
+                updatedAt: new Date(),
+              }}
+              onToggleFavorite={() => {}}
+              isFavorite={false}
+              {...widget.props}
+            />
+          </div>
+        );
+      case 'inquiry-form':
+        return <InquiryForm propertyId="demo" {...widget.props} />;
+      case 'search-bar':
+        return <SearchBar onSearch={() => {}} {...widget.props} />;
+      case 'filters':
+        return <AdvancedFilters onApplyFilters={() => {}} currentFilters={{}} {...widget.props} />;
       case 'footer':
         return <Footer {...widget.props} />;
       case 'text':
@@ -104,6 +179,9 @@ export default function PageBuilderClient() {
 
   const [selectedWidget, setSelectedWidget] = useState<Widget | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [layouts, setLayouts] = useState<any[]>([]);
+  const [currentLayout, setCurrentLayout] = useState<string>('homepage');
+  const [isPreviewMode, setIsPreviewMode] = useState(false);
 
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -144,6 +222,68 @@ export default function PageBuilderClient() {
     setWidgets(widgets.filter(w => w.id !== id));
   };
 
+  // Save layout to Supabase
+  const saveLayout = async () => {
+    try {
+      const layoutData = {
+        name: currentLayout,
+        widgets: widgets,
+        updatedAt: new Date().toISOString(),
+      };
+
+      const { data, error } = await supabase
+        .from('page_layouts')
+        .upsert(layoutData, { onConflict: 'name' });
+
+      if (error) throw error;
+
+      alert('Layout saved successfully!');
+    } catch (error) {
+      console.error('Error saving layout:', error);
+      alert('Failed to save layout');
+    }
+  };
+
+  // Load layout from Supabase
+  const loadLayout = async (layoutName: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('page_layouts')
+        .select('*')
+        .eq('name', layoutName)
+        .single();
+
+      if (error && error.code !== 'PGRST116') throw error;
+
+      if (data) {
+        setWidgets(data.widgets || []);
+        setCurrentLayout(layoutName);
+      }
+    } catch (error) {
+      console.error('Error loading layout:', error);
+    }
+  };
+
+  // Load available layouts on mount
+  useEffect(() => {
+    const fetchLayouts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('page_layouts')
+          .select('name')
+          .order('updatedAt', { ascending: false });
+
+        if (error) throw error;
+        setLayouts(data || []);
+      } catch (error) {
+        console.error('Error fetching layouts:', error);
+      }
+    };
+
+    fetchLayouts();
+    loadLayout(currentLayout);
+  }, []);
+
   return (
     <div className="flex h-screen">
       {/* Canvas */}
@@ -176,38 +316,102 @@ export default function PageBuilderClient() {
       </div>
 
       {/* Sidebar */}
-      <div className="w-80 border-l p-4 bg-muted/10">
-        <div className="space-y-4">
-          <div>
-            <h3 className="font-semibold mb-2">Add Widgets</h3>
-            <div className="grid grid-cols-2 gap-2">
-              <Button variant="outline" size="sm" onClick={() => addWidget('hero')}>
-                Hero
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => addWidget('property-slider')}>
-                Property Slider
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => addWidget('text')}>
-                Text
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => addWidget('image')}>
-                Image
-              </Button>
-              <Button variant="outline" size="sm" onClick={() => addWidget('footer')}>
-                Footer
-              </Button>
-            </div>
-          </div>
+      <div className="w-80 border-l p-4 bg-muted/10 overflow-y-auto">
+        <Tabs defaultValue="widgets" className="space-y-4">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="widgets">Widgets</TabsTrigger>
+            <TabsTrigger value="layouts">Layouts</TabsTrigger>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+          </TabsList>
 
-          <div>
-            <h3 className="font-semibold mb-2">Actions</h3>
-            <div className="space-y-2">
-              <Button className="w-full">Save Layout</Button>
-              <Button variant="outline" className="w-full">Preview</Button>
-              <Button variant="outline" className="w-full">Publish</Button>
+          <TabsContent value="widgets" className="space-y-4">
+            {['Layout', 'Content', 'Interactive', 'Media'].map(category => (
+              <div key={category}>
+                <h4 className="font-medium mb-2 text-sm">{category}</h4>
+                <div className="grid grid-cols-2 gap-2">
+                  {AVAILABLE_WIDGETS
+                    .filter(widget => widget.category === category)
+                    .map(widget => (
+                      <Button
+                        key={widget.type}
+                        variant="outline"
+                        size="sm"
+                        onClick={() => addWidget(widget.type as Widget['type'])}
+                        className="h-auto p-2 flex flex-col items-center gap-1"
+                      >
+                        <span className="text-lg">{widget.icon}</span>
+                        <span className="text-xs">{widget.label}</span>
+                      </Button>
+                    ))}
+                </div>
+              </div>
+            ))}
+          </TabsContent>
+
+          <TabsContent value="layouts" className="space-y-4">
+            <div>
+              <Label htmlFor="layout-select">Current Layout</Label>
+              <Select value={currentLayout} onValueChange={setCurrentLayout}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="homepage">Homepage</SelectItem>
+                  <SelectItem value="about">About Page</SelectItem>
+                  <SelectItem value="contact">Contact Page</SelectItem>
+                  <SelectItem value="properties">Properties Page</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-          </div>
-        </div>
+
+            <div className="space-y-2">
+              <Button onClick={saveLayout} className="w-full">
+                Save Layout
+              </Button>
+              <Button variant="outline" onClick={() => loadLayout(currentLayout)} className="w-full">
+                Load Layout
+              </Button>
+            </div>
+
+            <div>
+              <h4 className="font-medium mb-2 text-sm">Saved Layouts</h4>
+              <div className="space-y-1">
+                {layouts.map(layout => (
+                  <Button
+                    key={layout.name}
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => loadLayout(layout.name)}
+                    className="w-full justify-start"
+                  >
+                    {layout.name}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="settings" className="space-y-4">
+            <div className="space-y-2">
+              <Button
+                variant={isPreviewMode ? "default" : "outline"}
+                onClick={() => setIsPreviewMode(!isPreviewMode)}
+                className="w-full"
+              >
+                {isPreviewMode ? 'Exit Preview' : 'Preview Mode'}
+              </Button>
+              <Button variant="outline" className="w-full">
+                Export Layout
+              </Button>
+              <Button variant="outline" className="w-full">
+                Import Layout
+              </Button>
+              <Button variant="destructive" className="w-full">
+                Clear Canvas
+              </Button>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
 
       {/* Edit Modal */}
