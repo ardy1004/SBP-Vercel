@@ -11,6 +11,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { ImageVariants } from "@/lib/imageUtils";
 import { supabase } from "@/lib/supabase";
+import { parsePropertySlug } from "@/lib/utils/slug";
 import type { Property } from "@shared/types";
 import { Suspense, lazy } from "react";
 
@@ -30,28 +31,8 @@ export default function PropertyDetailPage() {
     return [];
   });
 
-  // Parse slug to extract property information
-  const parseSlug = (slugArray: string[]) => {
-    if (!slugArray || slugArray.length < 2) return null;
-
-    // Handle different slug patterns:
-    // /dijual/rumah/jakarta/jakarta-selatan/judul-properti
-    // /disewakan/apartment/bali/denpasar/modern-apartment
-    // /dijual/tanah/jawa-barat/bandung/lot-123
-
-    const [status, jenis, provinsi, kabupaten, ...titleParts] = slugArray;
-    const judul = titleParts.join('-').replace(/-/g, ' ');
-
-    return {
-      status,
-      jenis_properti: jenis,
-      provinsi,
-      kabupaten,
-      judul_properti: judul
-    };
-  };
-
-  const slugInfo = parseSlug(slug);
+  // Parse slug using the utility function
+  const slugInfo = parsePropertySlug(slug.join('-'));
 
   // Fetch property based on slug
   const { data: property, isLoading, error } = useQuery<Property | null>({
@@ -65,10 +46,15 @@ export default function PropertyDetailPage() {
       let query = supabase
         .from('properties')
         .select('*')
-        .eq('status', slugInfo.status)
-        .eq('jenis_properti', slugInfo.jenis_properti)
-        .ilike('provinsi', slugInfo.provinsi)
-        .ilike('kabupaten', slugInfo.kabupaten);
+        .eq('status', slugInfo.status || '')
+        .eq('jenis_properti', slugInfo.jenis_properti || '');
+
+      if (slugInfo.provinsi) {
+        query = query.ilike('provinsi', slugInfo.provinsi);
+      }
+      if (slugInfo.kabupaten) {
+        query = query.ilike('kabupaten', slugInfo.kabupaten);
+      }
 
       if (slugInfo.judul_properti) {
         query = query.ilike('judul_properti', `%${slugInfo.judul_properti}%`);
