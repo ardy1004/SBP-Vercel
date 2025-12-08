@@ -12,11 +12,11 @@ import { supabase } from "@/lib/supabase";
 import { parsePropertySlug } from "@/lib/utils/slug";
 import type { Property } from "@shared/types";
 import { Suspense, lazy } from "react";
-import { PropertyHeader } from "@/components/property/PropertyHeader";
-import { PropertyImageGallery } from "@/components/property/PropertyImageGallery";
+import { PropertyImageCarousel } from "@/components/property/PropertyImageCarousel";
+import { PropertyOverview } from "@/components/property/PropertyOverview";
 import { PropertyDetails } from "@/components/property/PropertyDetails";
-import { PropertyContact } from "@/components/property/PropertyContact";
-import { PropertyInfo } from "@/components/property/PropertyInfo";
+import { AgentContact } from "@/components/property/AgentContact";
+import { RelatedProperties } from "@/components/property/RelatedProperties";
 
 // Lazy load heavy components
 const ShareButtons = lazy(() => import("@/components/ShareButtons").then(module => ({ default: module.ShareButtons })));
@@ -429,22 +429,29 @@ export default function PropertyDetailPage() {
           })
         }}
       />
-        <PropertyHeader
-          title={property.judulProperti || 'Judul Properti'}
-          location={property.alamatLengkap || `${property.kabupaten}, ${property.provinsi}`}
-          price={formatPrice(property.hargaProperti, property.hargaPerMeter)}
-        />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            <PropertyImageGallery
+            {/* 1. Gambar Properti (Auto Slide) */}
+            <PropertyImageCarousel
               images={propertyImages}
               title={property.judulProperti || 'Property'}
               getImageVariants={getImageVariants}
+              autoSlideInterval={5000}
             />
 
+            {/* 2. Kode Listing, Judul, Lokasi, Harga, Share, Deskripsi */}
+            <PropertyOverview
+              kodeListing={property.kodeListing}
+              judulProperti={property.judulProperti || 'Judul Properti'}
+              lokasi={property.alamatLengkap || `${property.kabupaten}, ${property.provinsi}`}
+              harga={formatPrice(property.hargaProperti, property.hargaPerMeter)}
+              property={property}
+            />
+
+            {/* Property Details */}
             <PropertyDetails
               luasTanah={property.luasTanah}
               luasBangunan={property.luasBangunan}
@@ -458,13 +465,27 @@ export default function PropertyDetailPage() {
               isFeatured={property.isFeatured}
               isHot={property.isHot}
             />
+
+            {/* Lihat Properti Lainnya */}
+            <RelatedProperties
+              currentPropertyId={property.id}
+              location={property.kabupaten || property.provinsi}
+              jenisProperti={property.jenisProperti}
+              limit={3}
+            />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            <PropertyContact ownerContact={property.ownerContact} />
+            {/* 3. Form Hubungi Agent */}
+            <AgentContact
+              agentName="Monic Vera S"
+              agentPhone="+6281234567890"
+              agentEmail="monic@salambumiproperty.com"
+              propertyTitle={property.judulProperti || 'Properti'}
+            />
 
-            {/* Favorites and Share */}
+            {/* Favorites */}
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -474,20 +495,7 @@ export default function PropertyDetailPage() {
                 <Heart className={`w-4 h-4 mr-2 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
                 {favorites.includes(property.id) ? 'Disukai' : 'Sukai'}
               </Button>
-              <Suspense fallback={<Button variant="outline" disabled><Share2 className="w-4 h-4" /></Button>}>
-                <ShareButtons
-                  property={property}
-                  variant="compact"
-                />
-              </Suspense>
             </div>
-
-            <PropertyInfo
-              kodeListing={property.kodeListing}
-              status={property.status}
-              jenisProperti={property.jenisProperti}
-              createdAt={property.createdAt}
-            />
           </div>
         </div>
       </div>
