@@ -44,7 +44,22 @@ export default function PropertyDetailPage() {
 
       console.log('🔍 PropertyDetailPage: Searching for property with slug info:', slugInfo);
 
-      // First try exact match with all fields
+      // First try exact match by kode_listing if available (most accurate)
+      if (slugInfo.kode_listing) {
+        console.log('🔍 PropertyDetailPage: Searching by kode_listing:', slugInfo.kode_listing);
+        const { data, error } = await supabase
+          .from('properties')
+          .select('*')
+          .eq('kode_listing', slugInfo.kode_listing)
+          .limit(1);
+
+        if (!error && data && data.length > 0) {
+          console.log('✅ PropertyDetailPage: Found property by kode_listing:', data[0].id);
+          return transformSupabaseProperty(data[0]);
+        }
+      }
+
+      // Fallback: try exact match with all fields
       let query = supabase
         .from('properties')
         .select('*')
@@ -74,15 +89,30 @@ export default function PropertyDetailPage() {
         return transformSupabaseProperty(data[0]);
       }
 
-      // Try fallback search by partial match
+      // Try fallback search by combining multiple criteria
       console.log('🔄 PropertyDetailPage: No exact match, trying fallback search...');
-      const fallbackQuery = supabase
+      let fallbackQuery = supabase
         .from('properties')
         .select('*')
-        .or(`judul_properti.ilike.%${slugInfo.judul_properti || ''}%,kabupaten.ilike.%${slugInfo.kabupaten || ''}%`)
-        .limit(5);
+        .eq('status', slugInfo.status || '')
+        .eq('jenis_properti', slugInfo.jenis_properti || '');
 
-      const { data: fallbackData, error: fallbackError } = await fallbackQuery;
+      // Add location criteria if available
+      if (slugInfo.provinsi) {
+        fallbackQuery = fallbackQuery.ilike('provinsi', slugInfo.provinsi);
+      }
+      if (slugInfo.kabupaten) {
+        fallbackQuery = fallbackQuery.ilike('kabupaten', slugInfo.kabupaten);
+      }
+
+      // Add title search as additional filter
+      if (slugInfo.judul_properti) {
+        fallbackQuery = fallbackQuery.ilike('judul_properti', `%${slugInfo.judul_properti}%`);
+      }
+
+      const fallbackQueryFinal = fallbackQuery.limit(5);
+
+      const { data: fallbackData, error: fallbackError } = await fallbackQueryFinal;
 
       if (fallbackError) {
         console.error('❌ PropertyDetailPage: Fallback query also failed:', fallbackError);
