@@ -3,17 +3,20 @@
 import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, MapPin, Bed, Bath, Maximize, Heart, Phone, MessageCircle, Share2, Eye, Calendar, User } from "lucide-react";
+import { ArrowLeft, Heart, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { ImageVariants } from "@/lib/imageUtils";
 import { supabase } from "@/lib/supabase";
 import { parsePropertySlug } from "@/lib/utils/slug";
 import type { Property } from "@shared/types";
 import { Suspense, lazy } from "react";
+import { PropertyHeader } from "@/components/property/PropertyHeader";
+import { PropertyImageGallery } from "@/components/property/PropertyImageGallery";
+import { PropertyDetails } from "@/components/property/PropertyDetails";
+import { PropertyContact } from "@/components/property/PropertyContact";
+import { PropertyInfo } from "@/components/property/PropertyInfo";
 
 // Lazy load heavy components
 const ShareButtons = lazy(() => import("@/components/ShareButtons").then(module => ({ default: module.ShareButtons })));
@@ -426,232 +429,65 @@ export default function PropertyDetailPage() {
           })
         }}
       />
-        {/* Header */}
-        <div className="bg-white border-b">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <Button
-            variant="ghost"
-            onClick={() => router.back()}
-            className="mb-4"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Kembali
-          </Button>
-
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{property.judulProperti}</h1>
-              <p className="text-gray-600 flex items-center mt-1">
-                <MapPin className="w-4 h-4 mr-1" />
-                {property.alamatLengkap || `${property.kabupaten}, ${property.provinsi}`}
-              </p>
-            </div>
-            <div className="text-right">
-              <p className="text-3xl font-bold text-blue-600">
-                {formatPrice(property.hargaProperti, property.hargaPerMeter)}
-              </p>
-              <p className="text-sm text-gray-500">Kode: {property.kodeListing}</p>
-            </div>
-          </div>
-        </div>
-      </div>
+        <PropertyHeader
+          title={property.judulProperti || 'Judul Properti'}
+          location={property.alamatLengkap || `${property.kabupaten}, ${property.provinsi}`}
+          price={formatPrice(property.hargaProperti, property.hargaPerMeter)}
+        />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Main Content */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Image Gallery */}
-            <Card>
-              <CardContent className="p-0">
-                {/* Main Image */}
-                <div className="relative">
-                  <ResponsiveImage
-                    src={propertyImages[selectedImageIndex]}
-                    variants={getImageVariants(propertyImages[selectedImageIndex])}
-                    alt={`${property.judulProperti || 'Property'} - Image ${selectedImageIndex + 1}`}
-                    className="w-full h-96 object-cover rounded-t-lg"
-                  />
-                  {/* Image Counter */}
-                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
-                    {selectedImageIndex + 1} / {propertyImages.length}
-                  </div>
-                </div>
+            <PropertyImageGallery
+              images={propertyImages}
+              title={property.judulProperti || 'Property'}
+              getImageVariants={getImageVariants}
+            />
 
-                {/* Thumbnail Gallery */}
-                <div className="p-4 bg-gray-50">
-                  <div className="grid grid-cols-4 gap-3">
-                    {propertyImages.slice(0, 4).map((image, index) => (
-                      <button
-                        key={index}
-                        onClick={() => setSelectedImageIndex(index)}
-                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
-                          selectedImageIndex === index
-                            ? 'border-blue-500 ring-2 ring-blue-200'
-                            : 'border-gray-200 hover:border-gray-300'
-                        }`}
-                      >
-                        <ResponsiveImage
-                          src={image}
-                          variants={getImageVariants(image)}
-                          alt={`${property.judulProperti || 'Property'} - Thumbnail ${index + 1}`}
-                          className="w-full h-full object-cover"
-                        />
-                      </button>
-                    ))}
-                  </div>
-                  {propertyImages.length > 4 && (
-                    <p className="text-sm text-gray-500 mt-2 text-center">
-                      +{propertyImages.length - 4} gambar lainnya
-                    </p>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Property Details */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Detail Properti</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {property.luasTanah && (
-                    <div className="text-center">
-                      <Maximize className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                      <p className="text-sm text-gray-600">Luas Tanah</p>
-                      <p className="font-semibold">{property.luasTanah} m²</p>
-                    </div>
-                  )}
-                  {property.luasBangunan && (
-                    <div className="text-center">
-                      <Maximize className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                      <p className="text-sm text-gray-600">Luas Bangunan</p>
-                      <p className="font-semibold">{property.luasBangunan} m²</p>
-                    </div>
-                  )}
-                  {property.kamarTidur && (
-                    <div className="text-center">
-                      <Bed className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                      <p className="text-sm text-gray-600">Kamar Tidur</p>
-                      <p className="font-semibold">{property.kamarTidur}</p>
-                    </div>
-                  )}
-                  {property.kamarMandi && (
-                    <div className="text-center">
-                      <Bath className="w-6 h-6 mx-auto text-blue-600 mb-2" />
-                      <p className="text-sm text-gray-600">Kamar Mandi</p>
-                      <p className="font-semibold">{property.kamarMandi}</p>
-                    </div>
-                  )}
-                </div>
-
-                {property.deskripsi && (
-                  <div>
-                    <h3 className="font-semibold mb-2">Deskripsi</h3>
-                    <p className="text-gray-700 whitespace-pre-line">{property.deskripsi}</p>
-                  </div>
-                )}
-
-                <div className="flex flex-wrap gap-2">
-                  <Badge variant="secondary">{property.jenisProperti}</Badge>
-                  <Badge variant="outline">{property.status}</Badge>
-                  {property.legalitas && <Badge variant="outline">{property.legalitas}</Badge>}
-                  {property.isPremium && <Badge className="bg-yellow-500">Premium</Badge>}
-                  {property.isFeatured && <Badge className="bg-cyan-500">Featured</Badge>}
-                  {property.isHot && <Badge className="bg-orange-500">Hot</Badge>}
-                </div>
-              </CardContent>
-            </Card>
+            <PropertyDetails
+              luasTanah={property.luasTanah}
+              luasBangunan={property.luasBangunan}
+              kamarTidur={property.kamarTidur}
+              kamarMandi={property.kamarMandi}
+              deskripsi={property.deskripsi}
+              jenisProperti={property.jenisProperti}
+              status={property.status}
+              legalitas={property.legalitas}
+              isPremium={property.isPremium}
+              isFeatured={property.isFeatured}
+              isHot={property.isHot}
+            />
           </div>
 
           {/* Sidebar */}
           <div className="space-y-6">
-            {/* Contact Card */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <User className="w-5 h-5" />
-                  Kontak Penjual
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {property.ownerContact ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3">
-                      <Phone className="w-5 h-5 text-green-600" />
-                      <span className="font-medium">{property.ownerContact}</span>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button
-                        className="flex-1"
-                        onClick={() => window.open(`https://wa.me/${property.ownerContact?.replace(/\D/g, '')}`, '_blank')}
-                      >
-                        <MessageCircle className="w-4 h-4 mr-2" />
-                        WhatsApp
-                      </Button>
-                      <Button
-                        variant="outline"
-                        onClick={() => window.open(`tel:${property.ownerContact}`)}
-                      >
-                        <Phone className="w-4 h-4" />
-                      </Button>
-                    </div>
-                  </div>
-                ) : (
-                  <p className="text-gray-500 text-center py-4">
-                    Kontak tidak tersedia
-                  </p>
-                )}
+            <PropertyContact ownerContact={property.ownerContact} />
 
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    className="flex-1"
-                    onClick={() => toggleFavorite(property.id)}
-                  >
-                    <Heart className={`w-4 h-4 mr-2 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
-                    {favorites.includes(property.id) ? 'Disukai' : 'Sukai'}
-                  </Button>
-                  <Suspense fallback={<Button variant="outline" disabled><Share2 className="w-4 h-4" /></Button>}>
-                    <ShareButtons
-                      property={property}
-                      variant="compact"
-                    />
-                  </Suspense>
-                </div>
-              </CardContent>
-            </Card>
+            {/* Favorites and Share */}
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => toggleFavorite(property.id)}
+              >
+                <Heart className={`w-4 h-4 mr-2 ${favorites.includes(property.id) ? 'fill-red-500 text-red-500' : ''}`} />
+                {favorites.includes(property.id) ? 'Disukai' : 'Sukai'}
+              </Button>
+              <Suspense fallback={<Button variant="outline" disabled><Share2 className="w-4 h-4" /></Button>}>
+                <ShareButtons
+                  property={property}
+                  variant="compact"
+                />
+              </Suspense>
+            </div>
 
-            {/* Property Info */}
-            <Card>
-              <CardHeader>
-                <CardTitle>Informasi Properti</CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">ID Listing:</span>
-                  <span className="font-medium">{property.kodeListing}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Status:</span>
-                  <Badge variant={property.status === 'dijual' ? 'default' : 'secondary'}>
-                    {property.status}
-                  </Badge>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Tipe:</span>
-                  <span className="font-medium">{property.jenisProperti}</span>
-                </div>
-                {property.createdAt && (
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Dibuat:</span>
-                    <span className="font-medium">
-                      {new Date(property.createdAt).toLocaleDateString('id-ID')}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+            <PropertyInfo
+              kodeListing={property.kodeListing}
+              status={property.status}
+              jenisProperti={property.jenisProperti}
+              createdAt={property.createdAt}
+            />
           </div>
         </div>
       </div>
