@@ -3,6 +3,7 @@ import { Inter } from 'next/font/google'
 import { GoogleAnalytics } from '@next/third-parties/google'
 import { Providers } from './providers'
 import { reportWebVitals } from './web-vitals'
+import { PerformanceMonitor } from '@/components/PerformanceMonitor'
 import "./globals.css"
 
 const inter = Inter({ subsets: ['latin'] })
@@ -22,6 +23,7 @@ export default function RootLayout({
       <body className={inter.className}>
         <Providers>
           {children}
+          <PerformanceMonitor />
         </Providers>
         <GoogleAnalytics gaId="GA_MEASUREMENT_ID" />
       </body>

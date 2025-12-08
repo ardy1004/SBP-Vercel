@@ -1,16 +1,58 @@
 'use client';
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, Suspense } from "react";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
-import { HeroSection } from "@/components/HeroSection";
-import { PropertyPilihanSlider } from "@/components/PropertyPilihanSlider";
-import { PropertyCard } from "@/components/PropertyCard";
-import { AdvancedFilters, FilterValues } from "@/components/AdvancedFilters";
-import { SearchBar } from "@/components/SearchBar";
+import dynamicImport from 'next/dynamic';
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
+import { PropertyCardSkeleton, ListSkeleton } from "@/components/ui/skeleton-loader";
 import type { Property } from "@shared/types";
+import type { FilterValues } from "@/components/AdvancedFilters";
+
+// Lazy load heavy components for better performance
+const HeroSection = dynamicImport(() => import('@/components/HeroSection').then(mod => ({ default: mod.HeroSection })), {
+  loading: () => (
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+      <div className="text-center text-white">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+        <p>Memuat Salam Bumi Property...</p>
+      </div>
+    </div>
+  ),
+  ssr: false
+});
+
+const PropertyPilihanSlider = dynamicImport(() => import('@/components/PropertyPilihanSlider').then(mod => ({ default: mod.PropertyPilihanSlider })), {
+  loading: () => (
+    <div className="py-12">
+      <div className="max-w-7xl mx-auto px-4">
+        <Skeleton className="h-8 w-64 mb-8" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="space-y-4">
+              <Skeleton className="aspect-video w-full rounded-lg" />
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-1/2" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
+});
+
+const PropertyCard = dynamicImport(() => import('@/components/PropertyCard').then(mod => ({ default: mod.PropertyCard })), {
+  loading: () => <PropertyCardSkeleton />
+});
+
+const AdvancedFilters = dynamicImport(() => import('@/components/AdvancedFilters').then(mod => ({ default: mod.AdvancedFilters })), {
+  loading: () => <Skeleton className="h-12 w-full" />
+});
+
+const SearchBar = dynamicImport(() => import('@/components/SearchBar').then(mod => ({ default: mod.SearchBar })), {
+  loading: () => <Skeleton className="h-12 w-full" />
+});
 
 // Force dynamic rendering to avoid SSR issues with localStorage
 export const dynamic = 'force-dynamic';
@@ -248,10 +290,36 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <HeroSection onSearch={handleSearch} />
+      <Suspense fallback={
+        <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800 flex items-center justify-center">
+          <div className="text-center text-white">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-white mx-auto mb-4"></div>
+            <p>Memuat Salam Bumi Property...</p>
+          </div>
+        </div>
+      }>
+        <HeroSection onSearch={handleSearch} />
+      </Suspense>
 
       {propertyPilihan.length > 0 && (
-        <PropertyPilihanSlider properties={propertyPilihan} />
+        <Suspense fallback={
+          <div className="py-12">
+            <div className="max-w-7xl mx-auto px-4">
+              <Skeleton className="h-8 w-64 mb-8" />
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {Array.from({ length: 3 }).map((_, i) => (
+                  <div key={i} className="space-y-4">
+                    <Skeleton className="aspect-video w-full rounded-lg" />
+                    <Skeleton className="h-6 w-3/4" />
+                    <Skeleton className="h-4 w-1/2" />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        }>
+          <PropertyPilihanSlider properties={propertyPilihan} />
+        </Suspense>
       )}
 
       <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 py-12 md:py-20 flex-1">

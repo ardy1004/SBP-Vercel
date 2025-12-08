@@ -1,11 +1,12 @@
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { ResponsiveImage } from "@/components/ui/responsive-image";
 import { ImageVariants } from "@/lib/imageUtils";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { InlineLoader } from "@/components/ui/skeleton-loader";
 
 interface PropertyImageCarouselProps {
   images: string[];
@@ -24,17 +25,81 @@ export function PropertyImageCarousel({
 }: PropertyImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [loadedImages, setLoadedImages] = useState<Set<number>>(new Set([0]));
+  const [isLoading, setIsLoading] = useState(true);
+  const carouselRef = useRef<HTMLDivElement>(null);
+  const autoPlayRef = useRef<NodeJS.Timeout>();
 
-  // Auto slide functionality
+  // Preload adjacent images for better performance
+  const preloadImage = useCallback((index: number) => {
+    if (index < 0 || index >= images.length || loadedImages.has(index)) return;
+
+    const img = new Image();
+    img.onload = () => {
+      setLoadedImages(prev => new Set([...prev, index]));
+    };
+    img.src = images[index];
+  }, [images, loadedImages]);
+
+  // Preload current and adjacent images
   useEffect(() => {
-    if (!isAutoPlaying || images.length <= 1) return;
+    preloadImage(currentIndex);
+    preloadImage(currentIndex + 1);
+    preloadImage(currentIndex - 1);
+  }, [currentIndex, preloadImage]);
 
-    const interval = setInterval(() => {
-      setCurrentIndex((prevIndex) => (prevIndex + 1) % images.length);
-    }, autoSlideInterval);
+  // Optimized auto slide with requestAnimationFrame
+  useEffect(() => {
+    if (!isAutoPlaying || images.length <= 1) {
+      if (autoPlayRef.current) {
+        clearTimeout(autoPlayRef.current);
+      }
+      return;
+    }
 
-    return () => clearInterval(interval);
-  }, [isAutoPlaying, images.length, autoSlideInterval]);
+    const scheduleNext = () => {
+      autoPlayRef.current = setTimeout(() => {
+        setCurrentIndex((prevIndex) => {
+          const nextIndex = (prevIndex + 1) % images.length;
+          // Preload next image
+          preloadImage(nextIndex + 1);
+          return nextIndex;
+        });
+      }, autoSlideInterval);
+    };
+
+    scheduleNext();
+
+    return () => {
+      if (autoPlayRef.current) {
+        clearTimeout(autoPlayRef.current);
+      }
+    };
+  }, [isAutoPlaying, images.length, autoSlideInterval, preloadImage]);
+
+  // Intersection Observer for performance
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setIsLoading(false);
+            // Preload first few images when carousel becomes visible
+            for (let i = 0; i < Math.min(3, images.length); i++) {
+              preloadImage(i);
+            }
+          }
+        });
+      },
+      { threshold: 0.1 }
+    );
+
+    if (carouselRef.current) {
+      observer.observe(carouselRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [images.length, preloadImage]);
 
   const goToPrevious = () => {
     setCurrentIndex((prevIndex) =>
@@ -65,15 +130,24 @@ export function PropertyImageCarousel({
   }
 
   return (
-    <Card>
+    <Card ref={carouselRef}>
       <CardContent className="p-0 relative overflow-hidden">
+        {/* Loading State */}
+        {isLoading && (
+          <div className="absolute inset-0 flex items-center justify-center bg-gray-100 aspect-[16/10] md:aspect-[16/9] z-10">
+            <InlineLoader size="lg" />
+          </div>
+        )}
+
         {/* Main Image */}
         <div className="relative aspect-[16/10] md:aspect-[16/9]">
           <ResponsiveImage
             src={images[currentIndex]}
             variants={getImageVariants?.(images[currentIndex])}
             alt={`${title} - Image ${currentIndex + 1}`}
-            className="w-full h-full object-cover transition-opacity duration-500"
+            className={`w-full h-full object-cover transition-opacity duration-500 ${
+              loadedImages.has(currentIndex) ? 'opacity-100' : 'opacity-0'
+            }`}
           />
 
           {/* Premium Label - Bottom Left Corner */}
