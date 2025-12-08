@@ -177,7 +177,7 @@ export function PropertyPilihanSlider({ properties }: PropertyPilihanSliderProps
                 <div className="flex items-center">
                   <div>
                     <p className="text-base sm:text-lg md:text-xl lg:text-2xl xl:text-3xl font-bold text-white drop-shadow-2xl" data-testid="text-property-price">
-                      {formatPrice(currentProperty.hargaProperti, (currentProperty as any).hargaPerMeter)}
+                      {formatPrice(currentProperty.hargaProperti || '0', currentProperty.hargaPerMeter || false)}
                     </p>
                     {currentProperty.isHot && currentProperty.priceOld && (
                       <p className="text-xs sm:text-sm text-white/80 line-through mt-1">

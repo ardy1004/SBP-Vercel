@@ -12,13 +12,15 @@ interface PropertyImageCarouselProps {
   title: string;
   getImageVariants?: (imageUrl: string) => ImageVariants | undefined;
   autoSlideInterval?: number; // in milliseconds
+  isPremium?: boolean;
 }
 
 export function PropertyImageCarousel({
   images,
   title,
   getImageVariants,
-  autoSlideInterval = 4000
+  autoSlideInterval = 4000,
+  isPremium = false
 }: PropertyImageCarouselProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
@@ -73,6 +75,13 @@ export function PropertyImageCarousel({
             alt={`${title} - Image ${currentIndex + 1}`}
             className="w-full h-full object-cover transition-opacity duration-500"
           />
+
+          {/* Premium Label - Bottom Left Corner */}
+          {isPremium && (
+            <div className="absolute bottom-4 left-4 bg-yellow-500 text-black px-3 py-1 rounded-full text-sm font-bold shadow-lg">
+              ⭐ PREMIUM
+            </div>
+          )}
 
           {/* Overlay Controls */}
           <div className="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors duration-300">

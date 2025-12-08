@@ -16,6 +16,8 @@ interface PropertyDetailsProps {
   isPremium?: boolean | null;
   isFeatured?: boolean | null;
   isHot?: boolean | null;
+  shgb?: string | null; // SHGB (Sertifikat Hak Guna Bangunan)
+  pbg?: string | null;  // PBG (Persetujuan Bangunan Gedung)
 }
 
 export function PropertyDetails({
@@ -30,6 +32,8 @@ export function PropertyDetails({
   isPremium,
   isFeatured,
   isHot,
+  shgb,
+  pbg,
 }: PropertyDetailsProps) {
   return (
     <Card>
@@ -75,6 +79,29 @@ export function PropertyDetails({
               className="text-gray-700 whitespace-pre-line"
               dangerouslySetInnerHTML={{ __html: sanitizeHtml(deskripsi) }}
             />
+          </div>
+        )}
+
+        {/* SHGB & PBG Information */}
+        {(shgb || pbg) && (
+          <div className="bg-blue-50 p-4 rounded-lg">
+            <h3 className="font-semibold mb-3 text-blue-900">Informasi Legal & Perizinan</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {shgb && (
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm text-gray-600">SHGB</div>
+                  <div className="font-semibold text-blue-900">{shgb}</div>
+                  <div className="text-xs text-gray-500 mt-1">Sertifikat Hak Guna Bangunan</div>
+                </div>
+              )}
+              {pbg && (
+                <div className="bg-white p-3 rounded border">
+                  <div className="text-sm text-gray-600">PBG</div>
+                  <div className="font-semibold text-blue-900">{pbg}</div>
+                  <div className="text-xs text-gray-500 mt-1">Persetujuan Bangunan Gedung</div>
+                </div>
+              )}
+            </div>
           </div>
         )}
 

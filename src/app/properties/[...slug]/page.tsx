@@ -177,6 +177,8 @@ export default function PropertyDetailPage() {
       status: supabaseProperty.status,
       createdAt: new Date(supabaseProperty.created_at),
       updatedAt: new Date(supabaseProperty.updated_at),
+      shgb: supabaseProperty.shgb,
+      pbg: supabaseProperty.pbg,
     };
   };
 
@@ -440,6 +442,7 @@ export default function PropertyDetailPage() {
               title={property.judulProperti || 'Property'}
               getImageVariants={getImageVariants}
               autoSlideInterval={5000}
+              isPremium={property.isPremium || false}
             />
 
             {/* 2. Kode Listing, Judul, Lokasi, Harga, Share, Deskripsi */}
@@ -464,6 +467,8 @@ export default function PropertyDetailPage() {
               isPremium={property.isPremium}
               isFeatured={property.isFeatured}
               isHot={property.isHot}
+              shgb={property.shgb}
+              pbg={property.pbg}
             />
 
             {/* Lihat Properti Lainnya */}

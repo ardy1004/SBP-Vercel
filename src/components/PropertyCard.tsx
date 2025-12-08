@@ -307,7 +307,7 @@ export function PropertyCard({ property, onToggleFavorite, isFavorite }: Propert
             className="text-lg sm:text-xl font-bold text-gray-900"
             data-testid="text-price"
           >
-            {formatPrice(property.hargaProperti, (property as any).hargaPerMeter)}
+            {formatPrice(property.hargaProperti || '0', property.hargaPerMeter || false)}
           </p>
         </div>
 
