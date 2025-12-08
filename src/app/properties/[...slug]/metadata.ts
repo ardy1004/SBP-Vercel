@@ -63,8 +63,22 @@ export async function generatePropertyMetadata(slug: string): Promise<Metadata> 
     return validImages;
   };
 
-  const formatPrice = (price: string, isPerMeter: boolean = false) => {
-    const num = parseFloat(price);
+  const formatPrice = (price: any, isPerMeter: boolean = false) => {
+    // Handle different price types (string, number, null, undefined)
+    let priceStr = '';
+    if (typeof price === 'number') {
+      priceStr = price.toString();
+    } else if (typeof price === 'string') {
+      priceStr = price;
+    } else {
+      return 'Harga tidak tersedia';
+    }
+
+    const num = parseFloat(priceStr.replace(/[^\d.-]/g, ''));
+    if (isNaN(num)) {
+      return 'Harga tidak valid';
+    }
+
     if (isPerMeter) {
       if (num >= 1000000000) {
         const value = num / 1000000000;
