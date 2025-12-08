@@ -31,6 +31,8 @@ export default function PropertyDetailPage() {
     return [];
   });
 
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
   // Parse slug using the utility function
   const slugInfo = parsePropertySlug(slug.join('-'));
 
@@ -172,7 +174,7 @@ export default function PropertyDetailPage() {
     }
   };
 
-  const getPropertyImage = (property: Property) => {
+  const getPropertyImages = (property: Property) => {
     const imageFields = [
       property.imageUrl,
       property.imageUrl1,
@@ -180,19 +182,26 @@ export default function PropertyDetailPage() {
       property.imageUrl3,
       property.imageUrl4,
       property.imageUrl5,
+      property.imageUrl6,
+      property.imageUrl7,
+      property.imageUrl8,
+      property.imageUrl9,
     ];
+
+    const validImages: string[] = [];
 
     for (const img of imageFields) {
       if (img && img.trim() !== '') {
         try {
           new URL(img);
-          return img;
+          validImages.push(img);
         } catch {
           continue;
         }
       }
     }
 
+    // Ensure minimum 5 images, add placeholders if needed
     const propertyTypePlaceholders: Record<string, string> = {
       rumah: 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=800&h=600&fit=crop',
       kost: 'https://images.unsplash.com/photo-1555854877-bab0e564b8d5?w=800&h=600&fit=crop',
@@ -204,8 +213,19 @@ export default function PropertyDetailPage() {
       hotel: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&h=600&fit=crop',
     };
 
-    return propertyTypePlaceholders[property.jenisProperti] ||
-           'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop';
+    const placeholder = propertyTypePlaceholders[property.jenisProperti] ||
+                       'https://images.unsplash.com/photo-1560518883-ce09059eeffa?w=800&h=600&fit=crop';
+
+    // Add placeholders to reach minimum 5 images
+    while (validImages.length < 5) {
+      validImages.push(placeholder);
+    }
+
+    return validImages;
+  };
+
+  const getPropertyImage = (property: Property) => {
+    return getPropertyImages(property)[0]; // Return first image as main image
   };
 
   const toggleFavorite = (id: string) => {
@@ -261,8 +281,9 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const imageVariants: ImageVariants | undefined = (() => {
-    const imageUrl = getPropertyImage(property);
+  const propertyImages = getPropertyImages(property);
+
+  const getImageVariants = (imageUrl: string): ImageVariants | undefined => {
     if (imageUrl && imageUrl.includes('imagedelivery.net')) {
       const urlParts = imageUrl.split('/');
       const imageId = urlParts[urlParts.length - 2];
@@ -279,7 +300,7 @@ export default function PropertyDetailPage() {
       }
     }
     return undefined;
-  })();
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -320,12 +341,48 @@ export default function PropertyDetailPage() {
             {/* Image Gallery */}
             <Card>
               <CardContent className="p-0">
-                <ResponsiveImage
-                  src={getPropertyImage(property)}
-                  variants={imageVariants}
-                  alt={property.judulProperti || 'Property Image'}
-                  className="w-full h-96 object-cover rounded-lg"
-                />
+                {/* Main Image */}
+                <div className="relative">
+                  <ResponsiveImage
+                    src={propertyImages[selectedImageIndex]}
+                    variants={getImageVariants(propertyImages[selectedImageIndex])}
+                    alt={`${property.judulProperti || 'Property'} - Image ${selectedImageIndex + 1}`}
+                    className="w-full h-96 object-cover rounded-t-lg"
+                  />
+                  {/* Image Counter */}
+                  <div className="absolute top-4 right-4 bg-black/70 text-white px-3 py-1 rounded-full text-sm">
+                    {selectedImageIndex + 1} / {propertyImages.length}
+                  </div>
+                </div>
+
+                {/* Thumbnail Gallery */}
+                <div className="p-4 bg-gray-50">
+                  <div className="grid grid-cols-4 gap-3">
+                    {propertyImages.slice(0, 4).map((image, index) => (
+                      <button
+                        key={index}
+                        onClick={() => setSelectedImageIndex(index)}
+                        className={`relative aspect-square rounded-lg overflow-hidden border-2 transition-all ${
+                          selectedImageIndex === index
+                            ? 'border-blue-500 ring-2 ring-blue-200'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                      >
+                        <ResponsiveImage
+                          src={image}
+                          variants={getImageVariants(image)}
+                          alt={`${property.judulProperti || 'Property'} - Thumbnail ${index + 1}`}
+                          className="w-full h-full object-cover"
+                        />
+                      </button>
+                    ))}
+                  </div>
+                  {propertyImages.length > 4 && (
+                    <p className="text-sm text-gray-500 mt-2 text-center">
+                      +{propertyImages.length - 4} gambar lainnya
+                    </p>
+                  )}
+                </div>
               </CardContent>
             </Card>
 
