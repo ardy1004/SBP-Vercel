@@ -1,7 +1,6 @@
 'use client';
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Maximize, Bed, Bath } from "lucide-react";
 
 interface PropertyDetailsProps {
@@ -10,12 +9,6 @@ interface PropertyDetailsProps {
   kamarTidur?: number | null;
   kamarMandi?: number | null;
   deskripsi?: string | null;
-  jenisProperti: string;
-  status: string;
-  legalitas?: string | null;
-  isPremium?: boolean | null;
-  isFeatured?: boolean | null;
-  isHot?: boolean | null;
   shgb?: string | null; // SHGB (Sertifikat Hak Guna Bangunan)
   pbg?: string | null;  // PBG (Persetujuan Bangunan Gedung)
 }
@@ -26,12 +19,6 @@ export function PropertyDetails({
   kamarTidur,
   kamarMandi,
   deskripsi,
-  jenisProperti,
-  status,
-  legalitas,
-  isPremium,
-  isFeatured,
-  isHot,
   shgb,
   pbg,
 }: PropertyDetailsProps) {
@@ -72,17 +59,7 @@ export function PropertyDetails({
           )}
         </div>
 
-        {deskripsi && (
-          <div>
-            <h3 className="font-semibold mb-2">Deskripsi</h3>
-            <div
-              className="text-gray-700 whitespace-pre-line"
-              dangerouslySetInnerHTML={{ __html: sanitizeHtml(deskripsi) }}
-            />
-          </div>
-        )}
-
-        {/* SHGB & PBG Information */}
+        {/* SHGB & PBG Information - Moved to detail section */}
         {(shgb || pbg) && (
           <div className="bg-blue-50 p-4 rounded-lg">
             <h3 className="font-semibold mb-3 text-blue-900">Informasi Legal & Perizinan</h3>
@@ -105,14 +82,16 @@ export function PropertyDetails({
           </div>
         )}
 
-        <div className="flex flex-wrap gap-2">
-          <Badge variant="secondary">{jenisProperti}</Badge>
-          <Badge variant="outline">{status}</Badge>
-          {legalitas && <Badge variant="outline">{legalitas}</Badge>}
-          {isPremium && <Badge className="bg-yellow-500">Premium</Badge>}
-          {isFeatured && <Badge className="bg-cyan-500">Featured</Badge>}
-          {isHot && <Badge className="bg-orange-500">Hot</Badge>}
-        </div>
+        {deskripsi && (
+          <div>
+            <h3 className="font-semibold mb-2">Deskripsi</h3>
+            <div
+              className="text-gray-700 whitespace-pre-line"
+              dangerouslySetInnerHTML={{ __html: sanitizeHtml(deskripsi) }}
+            />
+          </div>
+        )}
+
       </CardContent>
     </Card>
   );

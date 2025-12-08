@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Suspense, lazy } from "react";
 import { MapPin, Share2 } from "lucide-react";
+import type { Property } from "@shared/types";
 
 // Lazy load ShareButtons to avoid SSR issues
 const ShareButtons = lazy(() => import("@/components/ShareButtons").then(module => ({ default: module.ShareButtons })));
@@ -13,7 +14,13 @@ interface PropertyOverviewProps {
   judulProperti?: string;
   lokasi?: string;
   harga?: string;
-  property: any; // Full property object for ShareButtons
+  jenisProperti?: string;
+  status?: string;
+  legalitas?: string | null;
+  isPremium?: boolean | null;
+  isFeatured?: boolean | null;
+  isHot?: boolean | null;
+  property: Property; // Full property object for ShareButtons
 }
 
 export function PropertyOverview({
@@ -21,6 +28,12 @@ export function PropertyOverview({
   judulProperti,
   lokasi,
   harga,
+  jenisProperti,
+  status,
+  legalitas,
+  isPremium,
+  isFeatured,
+  isHot,
   property
 }: PropertyOverviewProps) {
   return (
@@ -51,6 +64,16 @@ export function PropertyOverview({
           <p className="text-3xl md:text-4xl font-bold text-blue-600">
             {harga || 'Harga tidak tersedia'}
           </p>
+        </div>
+
+        {/* Property Badges */}
+        <div className="flex flex-wrap gap-2">
+          {jenisProperti && <Badge variant="secondary">{jenisProperti}</Badge>}
+          {status && <Badge variant="outline">{status}</Badge>}
+          {legalitas && <Badge variant="outline">{legalitas}</Badge>}
+          {isPremium && <Badge className="bg-yellow-500">Premium</Badge>}
+          {isFeatured && <Badge className="bg-cyan-500">Featured</Badge>}
+          {isHot && <Badge className="bg-orange-500">Hot</Badge>}
         </div>
 
         {/* Share Links All Medsos */}

@@ -451,6 +451,12 @@ export default function PropertyDetailPage() {
               judulProperti={property.judulProperti || 'Judul Properti'}
               lokasi={property.alamatLengkap || `${property.kabupaten}, ${property.provinsi}`}
               harga={formatPrice(property.hargaProperti, property.hargaPerMeter)}
+              jenisProperti={property.jenisProperti}
+              status={property.status}
+              legalitas={property.legalitas}
+              isPremium={property.isPremium}
+              isFeatured={property.isFeatured}
+              isHot={property.isHot}
               property={property}
             />
 
@@ -461,12 +467,6 @@ export default function PropertyDetailPage() {
               kamarTidur={property.kamarTidur}
               kamarMandi={property.kamarMandi}
               deskripsi={property.deskripsi}
-              jenisProperti={property.jenisProperti}
-              status={property.status}
-              legalitas={property.legalitas}
-              isPremium={property.isPremium}
-              isFeatured={property.isFeatured}
-              isHot={property.isHot}
               shgb={property.shgb}
               pbg={property.pbg}
             />
@@ -485,7 +485,7 @@ export default function PropertyDetailPage() {
             {/* 3. Form Hubungi Agent */}
             <AgentContact
               agentName="Monic Vera S"
-              agentPhone="+6281234567890"
+              agentPhone="+6281391278889"
               agentEmail="monic@salambumiproperty.com"
               propertyTitle={property.judulProperti || 'Properti'}
             />
