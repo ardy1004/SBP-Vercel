@@ -91,9 +91,9 @@ const nextConfig = {
     return config;
   },
 
-  // Experimental features for performance
+  // Experimental features for performance (disabled problematic optimizeCss)
   experimental: {
-    optimizeCss: true,
+    // optimizeCss: true, // Disabled - causes critters module issues
     scrollRestoration: true,
   },
 
