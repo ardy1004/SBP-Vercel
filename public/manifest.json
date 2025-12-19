@@ -1,0 +1,69 @@
+{
+  "name": "Salam Bumi Property - Cari Properti Terbaik di Yogyakarta",
+  "short_name": "Salam Bumi Property",
+  "description": "Platform properti terdepan di Yogyakarta dengan fitur pencarian canggih, peta interaktif, dan perbandingan properti profesional.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#3B82F6",
+  "orientation": "portrait-primary",
+  "scope": "/",
+  "lang": "id-ID",
+  "categories": ["business", "productivity", "utilities"],
+  "icons": [
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-192x192.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Cari Properti",
+      "short_name": "Cari",
+      "description": "Cari properti dengan filter canggih",
+      "url": "/properties",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Peta Properti",
+      "short_name": "Peta",
+      "description": "Jelajahi properti di peta interaktif",
+      "url": "/properties?view=map",
+      "icons": [
+        {
+          "src": "/icon-192x192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-mobile.png",
+      "sizes": "390x844",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Halaman utama Salam Bumi Property"
+    },
+    {
+      "src": "/screenshot-desktop.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Pencarian properti dengan filter canggih"
+    }
+  ]
+}
