@@ -45,7 +45,7 @@ export function ContactForm({ propertyTitle }: ContactFormProps) {
   const [errors, setErrors] = useState<Record<string, string>>({})
 
   const validateForm = (): boolean => {
-    const newErrors: Partial<FormData> = {}
+    const newErrors: Record<string, string> = {}
 
     if (!formData.userType) {
       newErrors.userType = 'Pilih jenis pengguna'
